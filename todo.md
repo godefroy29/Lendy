@@ -8,47 +8,47 @@ This document contains categorized proposals for new functionality, bug fixes, a
 |------|-------|----------|----------|
 | 1.1 | Edit Item Feature | High | New Functionality |
 | 1.2 | Password Reset/Forgot Password Feature | High | New Functionality |
+| 2.1 | Search Functionality Not Using Repository Search Method | High | Bug Fixes |
+| 5.1 | Secure API Keys | High | Security & Privacy |
 | 1.3 | Email Verification Status Check | Medium | New Functionality |
 | 1.4 | Item Categories/Tags System | Medium | New Functionality |
-| 1.5 | Item Value/Price Tracking | Low | New Functionality |
 | 1.6 | Statistics and Analytics Dashboard | Medium | New Functionality |
-| 1.7 | Export Data Feature | Low | New Functionality |
-| 1.8 | Recurring Lending Feature | Low | New Functionality |
 | 1.9 | Borrower Contact Quick Actions | Medium | New Functionality |
 | 1.10 | Dark Mode Support | Medium | New Functionality |
-| 1.11 | Item Notes/History Log | Low | New Functionality |
-| 1.12 | Backup and Restore Feature | Low | New Functionality |
-| 2.1 | Search Functionality Not Using Repository Search Method | High | Bug Fixes |
 | 2.2 | Notification Not Cancelled When Item Deleted | Medium | Bug Fixes |
 | 2.3 | Photo Upload Errors Not Properly Handled | Medium | Bug Fixes |
-| 2.4 | Reminder Date Validation Missing | Low | Bug Fixes |
-| 2.5 | Image Loading Errors Not User-Friendly | Low | Bug Fixes |
-| 2.6 | Form Validation Not Triggered on Submit in Some Cases | Low | Bug Fixes |
 | 3.1 | Improve Empty States | Medium | UI/UX Improvements |
-| 3.2 | Add Pull-to-Refresh Visual Feedback | Low | UI/UX Improvements |
 | 3.3 | Improve Item Card Design | Medium | UI/UX Improvements |
 | 3.4 | Add Loading Skeletons | Medium | UI/UX Improvements |
 | 3.5 | Improve Form Input UX | Medium | UI/UX Improvements |
-| 3.6 | Add Confirmation Dialogs with Better Design | Low | UI/UX Improvements |
-| 3.7 | Add Haptic Feedback | Low | UI/UX Improvements |
 | 3.8 | Improve Search UI | Medium | UI/UX Improvements |
-| 3.9 | Add Image Gallery View | Low | UI/UX Improvements |
-| 3.10 | Add Onboarding/Tutorial for New Users | Low | UI/UX Improvements |
 | 3.11 | Improve Error Messages | Medium | UI/UX Improvements |
-| 3.12 | Add Success Animations | Low | UI/UX Improvements |
 | 4.1 | Implement Image Caching | Medium | Performance & Technical |
-| 4.2 | Add Pagination for Large Item Lists | Low | Performance & Technical |
 | 4.3 | Optimize Database Queries | Medium | Performance & Technical |
 | 4.4 | Add Offline Support | Medium | Performance & Technical |
 | 4.5 | Implement Proper Error Logging | Medium | Performance & Technical |
 | 4.6 | Add Unit and Widget Tests | Medium | Performance & Technical |
-| 4.7 | Optimize App Size | Low | Performance & Technical |
-| 5.1 | Secure API Keys | High | Security & Privacy |
 | 5.2 | Add Biometric Authentication | Medium | Security & Privacy |
-| 5.3 | Add Session Timeout | Low | Security & Privacy |
 | 5.4 | Encrypt Sensitive Local Data | Medium | Security & Privacy |
 | 5.5 | Add Data Deletion on Account Deletion | Medium | Security & Privacy |
 | 6.1 | Add Screen Reader Support | Medium | Accessibility |
+| 1.5 | Item Value/Price Tracking | Low | New Functionality |
+| 1.7 | Export Data Feature | Low | New Functionality |
+| 1.8 | Recurring Lending Feature | Low | New Functionality |
+| 1.11 | Item Notes/History Log | Low | New Functionality |
+| 1.12 | Backup and Restore Feature | Low | New Functionality |
+| 2.4 | Reminder Date Validation Missing | Low | Bug Fixes |
+| 2.5 | Image Loading Errors Not User-Friendly | Low | Bug Fixes |
+| 2.6 | Form Validation Not Triggered on Submit in Some Cases | Low | Bug Fixes |
+| 3.2 | Add Pull-to-Refresh Visual Feedback | Low | UI/UX Improvements |
+| 3.6 | Add Confirmation Dialogs with Better Design | Low | UI/UX Improvements |
+| 3.7 | Add Haptic Feedback | Low | UI/UX Improvements |
+| 3.9 | Add Image Gallery View | Low | UI/UX Improvements |
+| 3.10 | Add Onboarding/Tutorial for New Users | Low | UI/UX Improvements |
+| 3.12 | Add Success Animations | Low | UI/UX Improvements |
+| 4.2 | Add Pagination for Large Item Lists | Low | Performance & Technical |
+| 4.7 | Optimize App Size | Low | Performance & Technical |
+| 5.3 | Add Session Timeout | Low | Security & Privacy |
 | 6.2 | Improve Touch Target Sizes | Low | Accessibility |
 | 6.3 | Add High Contrast Mode Support | Low | Accessibility |
 
