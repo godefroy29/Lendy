@@ -2,6 +2,10 @@
 cmake_minimum_required(VERSION 3.14)
 project(lendy LANGUAGES CXX)
 
+# Enable ATL support for plugins that require it (e.g., flutter_local_notifications_windows)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 # The name of the executable created for the application. Change this to change
 # the on-disk name of your application.
 set(BINARY_NAME "lendy")
@@ -44,6 +48,79 @@ function(APPLY_STANDARD_SETTINGS TARGET)
   target_compile_definitions(${TARGET} PRIVATE "_HAS_EXCEPTIONS=0")
   target_compile_definitions(${TARGET} PRIVATE "$<$<CONFIG:Debug>:_DEBUG>")
 endfunction()
+
+# Add ATL support for FFI plugins that require it (e.g., flutter_local_notifications_windows)
+# This must be done BEFORE plugins are included so they can find atlbase.h
+if(MSVC)
+  set(ATL_FOUND FALSE)
+  
+  # Method 1: Try Visual Studio ATL/MFC path (most common location)
+  if(CMAKE_VS_PLATFORM_TOOLSET)
+    get_filename_component(VS_DIR "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\VisualStudio\\SxS\\VC7;${CMAKE_VS_PLATFORM_TOOLSET}]" ABSOLUTE)
+    if(EXISTS "${VS_DIR}")
+      set(VS_ATL_INCLUDE "${VS_DIR}atlmfc/include")
+      if(EXISTS "${VS_ATL_INCLUDE}/atlbase.h")
+        include_directories("${VS_ATL_INCLUDE}")
+        set(ATL_FOUND TRUE)
+        message(STATUS "Found Visual Studio ATL headers at: ${VS_ATL_INCLUDE}")
+      endif()
+    endif()
+    
+    # Also try alternative VS installation paths
+    if(NOT ATL_FOUND)
+      get_filename_component(VS_DIR_ALT "[HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\VisualStudio\\SxS\\VC7;${CMAKE_VS_PLATFORM_TOOLSET}]" ABSOLUTE)
+      if(EXISTS "${VS_DIR_ALT}")
+        set(VS_ATL_INCLUDE "${VS_DIR_ALT}atlmfc/include")
+        if(EXISTS "${VS_ATL_INCLUDE}/atlbase.h")
+          include_directories("${VS_ATL_INCLUDE}")
+          set(ATL_FOUND TRUE)
+          message(STATUS "Found Visual Studio ATL headers at: ${VS_ATL_INCLUDE}")
+        endif()
+      endif()
+    endif()
+  endif()
+  
+  # Method 2: Try Windows SDK path (some SDKs include ATL)
+  if(NOT ATL_FOUND)
+    get_filename_component(WINDOWS_SDK_DIR "[HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows Kits\\Installed Roots;KitsRoot10]" ABSOLUTE)
+    if(NOT EXISTS "${WINDOWS_SDK_DIR}")
+      get_filename_component(WINDOWS_SDK_DIR "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows Kits\\Installed Roots;KitsRoot10]" ABSOLUTE)
+    endif()
+    
+    if(EXISTS "${WINDOWS_SDK_DIR}")
+      # Find the latest SDK version
+      file(GLOB SDK_VERSIONS "${WINDOWS_SDK_DIR}Include/*")
+      if(SDK_VERSIONS)
+        list(SORT SDK_VERSIONS)
+        list(REVERSE SDK_VERSIONS)
+        get_filename_component(LATEST_SDK "${SDK_VERSIONS}" NAME)
+        set(ATL_INCLUDE_DIR "${WINDOWS_SDK_DIR}Include/${LATEST_SDK}/um")
+        if(EXISTS "${ATL_INCLUDE_DIR}/atlbase.h")
+          include_directories("${ATL_INCLUDE_DIR}")
+          set(ATL_FOUND TRUE)
+          message(STATUS "Found ATL headers in Windows SDK at: ${ATL_INCLUDE_DIR}")
+        endif()
+      endif()
+    endif()
+  endif()
+  
+  # Method 3: Use environment variables as fallback
+  if(NOT ATL_FOUND)
+    if(DEFINED ENV{VCINSTALLDIR})
+      set(VS_ATL_INCLUDE "$ENV{VCINSTALLDIR}atlmfc/include")
+      if(EXISTS "${VS_ATL_INCLUDE}/atlbase.h")
+        include_directories("${VS_ATL_INCLUDE}")
+        set(ATL_FOUND TRUE)
+        message(STATUS "Found ATL headers via VCINSTALLDIR at: ${VS_ATL_INCLUDE}")
+      endif()
+    endif()
+  endif()
+  
+  if(NOT ATL_FOUND)
+    message(WARNING "ATL headers not found. flutter_local_notifications_windows may fail to compile.")
+    message(WARNING "Please ensure Visual Studio with C++ ATL/MFC components is installed.")
+  endif()
+endif()
 
 # Flutter library and tool build rules.
 set(FLUTTER_MANAGED_DIR "${CMAKE_CURRENT_SOURCE_DIR}/flutter")
