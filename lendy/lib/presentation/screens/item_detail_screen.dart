@@ -7,6 +7,7 @@ import '../../domain/entities/item.dart';
 import '../../domain/entities/item_status.dart';
 import '../../services/auth_providers.dart';
 import '../../services/local_notification_service.dart';
+import '../../config/app_theme.dart';
 
 class ItemDetailScreen extends ConsumerStatefulWidget {
   final String itemId;
@@ -45,19 +46,67 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
           }
           return _buildItemDetails(item);
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(
+        loading: () => Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('Error: $error'),
-              ElevatedButton(
-                onPressed: () {
-                  ref.invalidate(itemDetailProvider(widget.itemId));
-                },
-                child: const Text('Retry'),
+              CircularProgressIndicator(
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Loading item details...',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha:0.6),
+                ),
               ),
             ],
+          ),
+        ),
+        error: (error, stack) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.errorContainer.withValues(alpha:0.3),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.error_outline,
+                    size: 64,
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'Failed to load item',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  error.toString(),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha:0.6),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    ref.invalidate(itemDetailProvider(widget.itemId));
+                  },
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Retry'),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -65,126 +114,199 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
   }
 
   Widget _buildItemDetails(Item item) {
+    final isOverdue = item.dueAt != null && _isOverdue(item.dueAt!);
+    
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Item Title
           Text(
             item.title,
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+            style: Theme.of(context).textTheme.displaySmall?.copyWith(
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           
-          // Status Badge
-          Chip(
-            label: Text(
-              item.status.value.toUpperCase(),
-              style: const TextStyle(fontSize: 12),
+          // Status Badge - Use semantic colors
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: item.status == ItemStatus.lent 
+                  ? Theme.of(context).colorScheme.warningContainer
+                  : Theme.of(context).colorScheme.successContainer,
+              borderRadius: BorderRadius.circular(8),
             ),
-            backgroundColor: item.status == ItemStatus.lent 
-                ? Colors.orange.shade100 
-                : Colors.green.shade100,
+            child: Text(
+              item.status.value.toUpperCase(),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: item.status == ItemStatus.lent 
+                    ? Theme.of(context).colorScheme.warning
+                    : Theme.of(context).colorScheme.success,
+              ),
+            ),
           ),
+          const SizedBox(height: 32),
+          
+          // Borrower Information Section
+          _buildSectionHeader('Borrower Information'),
+          const SizedBox(height: 12),
+          _buildInfoCard(
+            context,
+            icon: Icons.person,
+            label: 'Borrower',
+            value: item.borrowerName,
+          ),
+          if (item.borrowerContact != null) ...[
+            const SizedBox(height: 12),
+            _buildInfoCard(
+              context,
+              icon: Icons.contact_mail,
+              label: 'Contact',
+              value: item.borrowerContact!,
+            ),
+          ],
           const SizedBox(height: 24),
           
-          // Borrower Information
-          _buildInfoRow('Borrower', item.borrowerName),
-          if (item.borrowerContact != null)
-            _buildInfoRow('Contact', item.borrowerContact!),
-          
-          const Divider(height: 32),
-          
-          // Dates
-          _buildInfoRow(
-            'Date Lent',
-            DateFormat('MMM d, y').format(item.lentAt),
+          // Dates Section
+          _buildSectionHeader('Dates'),
+          const SizedBox(height: 12),
+          _buildInfoCard(
+            context,
+            icon: Icons.calendar_today,
+            label: 'Date Lent',
+            value: DateFormat('MMM d, y').format(item.lentAt),
           ),
-          if (item.dueAt != null)
-            _buildInfoRow(
-              'Due Date',
-              DateFormat('MMM d, y').format(item.dueAt!),
-              valueColor: _isOverdue(item.dueAt!) ? Colors.red : null,
+          if (item.dueAt != null) ...[
+            const SizedBox(height: 12),
+            _buildInfoCard(
+              context,
+              icon: Icons.event,
+              label: 'Due Date',
+              value: DateFormat('MMM d, y').format(item.dueAt!),
+              isError: isOverdue,
+              isWarning: !isOverdue && item.dueAt!.difference(DateTime.now()).inDays <= 3,
             ),
+          ],
           // Reminder section (editable)
-          const Divider(height: 32),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Reminder',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    item.reminderAt != null
-                        ? DateFormat('MMM d, y h:mm a').format(item.reminderAt!)
-                        : 'Not set',
-                    style: TextStyle(color: Colors.grey[600]),
-                  ),
-                ],
+          const SizedBox(height: 24),
+          _buildSectionHeader('Reminder'),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha:0.5),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.outline.withValues(alpha:0.2),
               ),
-              Row(
-                children: [
-                  if (item.reminderAt != null)
-                    IconButton(
-                      icon: const Icon(Icons.clear),
-                      onPressed: () => _handleRemoveReminder(item.id),
-                      tooltip: 'Remove reminder',
-                    ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha:0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Icons.notifications,
+                    size: 20,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Reminder',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha:0.6),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        item.reminderAt != null
+                            ? DateFormat('MMM d, y h:mm a').format(item.reminderAt!)
+                            : 'Not set',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: item.reminderAt != null
+                              ? Theme.of(context).colorScheme.onSurface
+                              : Theme.of(context).colorScheme.onSurface.withValues(alpha:0.5),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (item.reminderAt != null)
                   IconButton(
-                    icon: const Icon(Icons.edit),
-                    onPressed: () => _handleSetReminder(item.id, item.reminderAt, item.title),
-                    tooltip: 'Set reminder',
+                    icon: Icon(
+                      Icons.clear,
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha:0.6),
+                    ),
+                    onPressed: () => _handleRemoveReminder(item.id),
+                    tooltip: 'Remove reminder',
                   ),
-                ],
-              ),
-            ],
+                IconButton(
+                  icon: Icon(
+                    Icons.edit,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  onPressed: () => _handleSetReminder(item.id, item.reminderAt, item.title),
+                  tooltip: 'Set reminder',
+                ),
+              ],
+            ),
           ),
           if (item.returnedAt != null) ...[
-            const Divider(height: 32),
-            _buildInfoRow(
-              'Returned On',
-              DateFormat('MMM d, y').format(item.returnedAt!),
+            const SizedBox(height: 24),
+            _buildInfoCard(
+              context,
+              icon: Icons.check_circle,
+              label: 'Returned On',
+              value: DateFormat('MMM d, y').format(item.returnedAt!),
             ),
           ],
           
           // Description
           if (item.description != null) ...[
-            const Divider(height: 32),
-            Text(
-              'Description',
-              style: Theme.of(context).textTheme.titleMedium,
+            const SizedBox(height: 24),
+            _buildSectionHeader('Description'),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha:0.5),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                item.description!,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
             ),
-            const SizedBox(height: 8),
-            Text(item.description!),
           ],
           
           // Photos section
           if (item.photoUrls != null && item.photoUrls!.isNotEmpty) ...[
-            const Divider(height: 32),
-            Text(
-              'Photos',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 24),
+            _buildSectionHeader('Photos'),
+            const SizedBox(height: 12),
             SizedBox(
-              height: 200,
+              height: 220,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 itemCount: item.photoUrls!.length,
                 itemBuilder: (context, index) {
                   return Padding(
-                    padding: const EdgeInsets.only(right: 8),
+                    padding: const EdgeInsets.only(right: 12),
                     child: GestureDetector(
                       onTap: () {
-                        // Show full screen image
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -195,18 +317,25 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
                         );
                       },
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(12),
                         child: Image.network(
                           item.photoUrls![index],
-                          width: 200,
-                          height: 200,
+                          width: 220,
+                          height: 220,
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
                             return Container(
-                              width: 200,
-                              height: 200,
-                              color: Colors.grey[300],
-                              child: const Icon(Icons.broken_image),
+                              width: 220,
+                              height: 220,
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Icon(
+                                Icons.broken_image,
+                                size: 48,
+                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha:0.4),
+                              ),
                             );
                           },
                         ),
@@ -251,29 +380,80 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
     );
   }
 
-  Widget _buildInfoRow(String label, String value, {Color? valueColor}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+  Widget _buildSectionHeader(String title) {
+    return Text(
+      title,
+      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+        fontWeight: FontWeight.bold,
+      ),
+    );
+  }
+
+  Widget _buildInfoCard(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required String value,
+    bool isError = false,
+    bool isWarning = false,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    Color? valueColor;
+    Color? iconColor;
+    
+    if (isError) {
+      // Error: Coral Red for overdue items
+      valueColor = colorScheme.error;
+      iconColor = colorScheme.error;
+    } else if (isWarning) {
+      // Warning: Amber for items due within 3 days
+      valueColor = colorScheme.warning;
+      iconColor = colorScheme.warning;
+    }
+    
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha:0.5),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withValues(alpha:0.2),
+        ),
+      ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 100,
-            child: Text(
-              label,
-              style: TextStyle(
-                fontWeight: FontWeight.w500,
-                color: Colors.grey[600],
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: (iconColor ?? colorScheme.primary).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                icon,
+                size: 20,
+                color: iconColor ?? colorScheme.primary,
               ),
             ),
-          ),
+          const SizedBox(width: 16),
           Expanded(
-            child: Text(
-              value,
-              style: TextStyle(
-                color: valueColor,
-                fontWeight: valueColor != null ? FontWeight.w500 : null,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha:0.6),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: valueColor ?? Theme.of(context).colorScheme.onSurface,
+                    fontWeight: (isError || isWarning) ? FontWeight.w600 : FontWeight.normal,
+                  ),
+                ),
+              ],
             ),
           ),
         ],

@@ -198,12 +198,13 @@ class _CreateItemScreenState extends ConsumerState<CreateItemScreen> {
         title: const Text('Add Item'),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              const SizedBox(height: 8),
               TextFormField(
                 controller: _titleController,
                 decoration: const InputDecoration(
@@ -253,11 +254,12 @@ class _CreateItemScreenState extends ConsumerState<CreateItemScreen> {
                 ),
                 keyboardType: TextInputType.emailAddress,
               ),
-              const SizedBox(height: 16),
-              ListTile(
-                title: const Text('Date Lent'),
-                subtitle: Text(DateFormat('MMM d, y').format(_lentAt)),
-                trailing: const Icon(Icons.calendar_today),
+              const SizedBox(height: 20),
+              _buildDatePickerTile(
+                context,
+                title: 'Date Lent',
+                value: DateFormat('MMM d, y').format(_lentAt),
+                icon: Icons.calendar_today,
                 onTap: () async {
                   final date = await showDatePicker(
                     context: context,
@@ -273,28 +275,19 @@ class _CreateItemScreenState extends ConsumerState<CreateItemScreen> {
                 },
               ),
               const SizedBox(height: 16),
-              ListTile(
-                title: const Text('Due Date (optional)'),
-                subtitle: Text(
-                  _dueAt != null 
-                      ? DateFormat('MMM d, y').format(_dueAt!) 
-                      : 'Not set',
-                ),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (_dueAt != null)
-                      IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          setState(() {
-                            _dueAt = null;
-                          });
-                        },
-                      ),
-                    const Icon(Icons.calendar_today),
-                  ],
-                ),
+              _buildDatePickerTile(
+                context,
+                title: 'Due Date (optional)',
+                value: _dueAt != null 
+                    ? DateFormat('MMM d, y').format(_dueAt!) 
+                    : 'Not set',
+                icon: Icons.event,
+                hasClear: _dueAt != null,
+                onClear: () {
+                  setState(() {
+                    _dueAt = null;
+                  });
+                },
                 onTap: () async {
                   final date = await showDatePicker(
                     context: context,
@@ -310,30 +303,20 @@ class _CreateItemScreenState extends ConsumerState<CreateItemScreen> {
                 },
               ),
               const SizedBox(height: 16),
-              ListTile(
-                title: const Text('Reminder (optional)'),
-                subtitle: Text(
-                  _reminderAt != null 
-                      ? DateFormat('MMM d, y h:mm a').format(_reminderAt!) 
-                      : 'Not set',
-                ),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (_reminderAt != null)
-                      IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          setState(() {
-                            _reminderAt = null;
-                          });
-                        },
-                      ),
-                    const Icon(Icons.notifications),
-                  ],
-                ),
+              _buildDatePickerTile(
+                context,
+                title: 'Reminder (optional)',
+                value: _reminderAt != null 
+                    ? DateFormat('MMM d, y h:mm a').format(_reminderAt!) 
+                    : 'Not set',
+                icon: Icons.notifications,
+                hasClear: _reminderAt != null,
+                onClear: () {
+                  setState(() {
+                    _reminderAt = null;
+                  });
+                },
                 onTap: () async {
-                  // Pick date first
                   final date = await showDatePicker(
                     context: context,
                     initialDate: _reminderAt ?? DateTime.now(),
@@ -341,17 +324,14 @@ class _CreateItemScreenState extends ConsumerState<CreateItemScreen> {
                     lastDate: DateTime.now().add(const Duration(days: 365)),
                   );
                   
-                  if (date == null) return;
+                  if (date == null || !mounted) return;
                   
-                  // Then pick time - check mounted before using context
-                  if (!mounted) return;
                   final time = await showTimePicker(
                     context: context,
                     initialTime: TimeOfDay.fromDateTime(_reminderAt ?? DateTime.now()),
                   );
                   
-                  if (time == null) return;
-                  if (!mounted) return;
+                  if (time == null || !mounted) return;
                   
                   setState(() {
                     _reminderAt = DateTime(
@@ -364,49 +344,61 @@ class _CreateItemScreenState extends ConsumerState<CreateItemScreen> {
                   });
                 },
               ),
-              const Divider(height: 32),
+              const SizedBox(height: 8),
+              Divider(
+                height: 40,
+                thickness: 1,
+                color: Theme.of(context).colorScheme.outline.withValues(alpha:0.2),
+              ),
               Text(
                 'Photos (optional)',
-                style: Theme.of(context).textTheme.titleMedium,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               
               // Display selected images
               if (_selectedImages.isNotEmpty)
                 SizedBox(
-                  height: 100,
+                  height: 120,
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     itemCount: _selectedImages.length,
                     itemBuilder: (context, index) {
                       return Padding(
-                        padding: const EdgeInsets.only(right: 8),
+                        padding: const EdgeInsets.only(right: 12),
                         child: Stack(
                           children: [
                             ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.circular(12),
                               child: Image.file(
                                 _selectedImages[index],
-                                width: 100,
-                                height: 100,
+                                width: 120,
+                                height: 120,
                                 fit: BoxFit.cover,
                               ),
                             ),
                             Positioned(
-                              top: 4,
-                              right: 4,
-                              child: CircleAvatar(
-                                radius: 12,
-                                backgroundColor: Colors.red,
+                              top: 6,
+                              right: 6,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).colorScheme.error,
+                                  shape: BoxShape.circle,
+                                ),
                                 child: IconButton(
-                                  icon: const Icon(Icons.close, size: 16, color: Colors.white),
+                                  icon: const Icon(Icons.close, size: 18, color: Colors.white),
                                   onPressed: () {
                                     setState(() {
                                       _selectedImages.removeAt(index);
                                     });
                                   },
                                   padding: EdgeInsets.zero,
-                                  constraints: const BoxConstraints(),
+                                  constraints: const BoxConstraints(
+                                    minWidth: 28,
+                                    minHeight: 28,
+                                  ),
                                 ),
                               ),
                             ),
@@ -417,20 +409,26 @@ class _CreateItemScreenState extends ConsumerState<CreateItemScreen> {
                   ),
                 ),
               
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               
               // Add photo button
               OutlinedButton.icon(
                 onPressed: _pickImages,
                 icon: const Icon(Icons.add_photo_alternate),
                 label: const Text('Add Photos'),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
               Row(
                 children: [
                   Expanded(
                     child: OutlinedButton(
                       onPressed: _isLoading ? null : () => Navigator.pop(context),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
                       child: const Text('Cancel'),
                     ),
                   ),
@@ -439,6 +437,9 @@ class _CreateItemScreenState extends ConsumerState<CreateItemScreen> {
                     flex: 2,
                     child: ElevatedButton(
                       onPressed: _isLoading ? null : _handleSave,
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
                       child: _isLoading
                           ? const SizedBox(
                               height: 20,
@@ -450,8 +451,92 @@ class _CreateItemScreenState extends ConsumerState<CreateItemScreen> {
                   ),
                 ],
               ),
+              const SizedBox(height: 20),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDatePickerTile(
+    BuildContext context, {
+    required String title,
+    required String value,
+    required IconData icon,
+    required VoidCallback onTap,
+    bool hasClear = false,
+    VoidCallback? onClear,
+  }) {
+    final isNotSet = value == 'Not set';
+    
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha:0.5),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.outline.withValues(alpha:0.2),
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary.withValues(alpha:0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                icon,
+                size: 20,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha:0.6),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    value,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: isNotSet 
+                          ? Theme.of(context).colorScheme.onSurface.withValues(alpha:0.5)
+                          : Theme.of(context).colorScheme.onSurface,
+                      fontWeight: isNotSet ? FontWeight.normal : FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (hasClear && onClear != null)
+              IconButton(
+                icon: Icon(
+                  Icons.clear,
+                  size: 20,
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha:0.6),
+                ),
+                onPressed: onClear,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+            const SizedBox(width: 8),
+            Icon(
+              Icons.chevron_right,
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha:0.4),
+            ),
+          ],
         ),
       ),
     );
