@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../domain/entities/item.dart';
+import '../../domain/entities/item_status.dart';
 import '../../config/app_theme.dart';
 
 class ItemCard extends StatelessWidget {
   final Item item;
   final VoidCallback onTap;
+  final Function(String borrowerName)? onBorrowerTap;
 
   const ItemCard({
     super.key,
     required this.item,
     required this.onTap,
+    this.onBorrowerTap,
   });
 
   @override
@@ -84,13 +87,21 @@ class ItemCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Expanded(
-                          child: Text(
-                            item.borrowerName,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha:0.7),
+                          child: GestureDetector(
+                            onTap: onBorrowerTap != null
+                                ? () => onBorrowerTap!(item.borrowerName)
+                                : null,
+                            child: Text(
+                              item.borrowerName,
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha:0.7),
+                                decoration: onBorrowerTap != null
+                                    ? TextDecoration.underline
+                                    : TextDecoration.none,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
@@ -107,7 +118,14 @@ class ItemCard extends StatelessWidget {
                           'Lent',
                           DateFormat('MMM d').format(item.lentAt),
                         ),
-                        if (item.dueAt != null)
+                        if (item.status == ItemStatus.returned && item.returnedAt != null)
+                          _buildDateChip(
+                            context,
+                            Icons.check_circle,
+                            'Returned',
+                            DateFormat('MMM d').format(item.returnedAt!),
+                          )
+                        else if (item.dueAt != null)
                           _buildDateChip(
                             context,
                             Icons.event,

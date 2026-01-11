@@ -11,7 +11,12 @@ import '../../services/auth_providers.dart';
 import '../../services/local_notification_service.dart';
 
 class CreateItemScreen extends ConsumerStatefulWidget {
-  const CreateItemScreen({super.key});
+  final String? initialBorrowerName;
+  
+  const CreateItemScreen({
+    super.key,
+    this.initialBorrowerName,
+  });
 
   @override
   ConsumerState<CreateItemScreen> createState() => _CreateItemScreenState();
@@ -30,6 +35,14 @@ class _CreateItemScreenState extends ConsumerState<CreateItemScreen> {
   
   final List<File> _selectedImages = [];
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialBorrowerName != null) {
+      _borrowerNameController.text = widget.initialBorrowerName!;
+    }
+  }
 
   @override
   void dispose() {

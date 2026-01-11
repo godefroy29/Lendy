@@ -24,6 +24,11 @@ class _ItemsListScreenState extends ConsumerState<ItemsListScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _searchController.addListener(() {
+      setState(() {
+        _searchQuery = _searchController.text;
+      });
+    });
   }
 
   @override
@@ -44,69 +49,47 @@ class _ItemsListScreenState extends ConsumerState<ItemsListScreen>
           title: _searchQuery.isEmpty 
               ? const Text('Lendy')
               : Text('Search: $_searchQuery'),
-          bottom: const TabBar(
-            tabs: [
-              Tab(text: 'Lent'),
-              Tab(text: 'Returned'),
-            ],
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(112),
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: 'Search by Borrower, Title, or Description',
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon: _searchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                _searchController.clear();
+                              },
+                            )
+                          : null,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      filled: true,
+                      fillColor: Theme.of(context).colorScheme.surface,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                    ),
+                  ),
+                ),
+                const TabBar(
+                  tabs: [
+                    Tab(text: 'Lent'),
+                    Tab(text: 'Returned'),
+                  ],
+                ),
+              ],
+            ),
           ),
           actions: [
-            IconButton(
-              icon: const Icon(Icons.search),
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    title: const Text('Search Items'),
-                    content: TextField(
-                      controller: _searchController,
-                      autofocus: true,
-                      decoration: InputDecoration(
-                        hintText: 'Search by title or borrower name',
-                        prefixIcon: const Icon(Icons.search),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          _searchQuery = value;
-                        });
-                      },
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () {
-                          setState(() {
-                            _searchQuery = '';
-                            _searchController.clear();
-                          });
-                          Navigator.pop(context);
-                        },
-                        child: const Text('Clear'),
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('Close'),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-            if (_searchQuery.isNotEmpty)
-              IconButton(
-                icon: const Icon(Icons.clear),
-                onPressed: () {
-                  setState(() {
-                    _searchQuery = '';
-                    _searchController.clear();
-                  });
-                },
-              ),
             IconButton(
               icon: Icon(isDark ? Icons.light_mode : Icons.dark_mode),
               onPressed: () {
@@ -127,7 +110,9 @@ class _ItemsListScreenState extends ConsumerState<ItemsListScreen>
             await Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => const CreateItemScreen(),
+                builder: (context) => CreateItemScreen(
+                  initialBorrowerName: _searchQuery.isNotEmpty ? _searchQuery : null,
+                ),
               ),
             );
             // Refresh list after returning from create screen
@@ -154,7 +139,9 @@ class _ItemsListScreenState extends ConsumerState<ItemsListScreen>
             : allItems.where((item) {
                 final query = _searchQuery.toLowerCase();
                 return item.title.toLowerCase().contains(query) ||
-                    item.borrowerName.toLowerCase().contains(query);
+                    item.borrowerName.toLowerCase().contains(query) ||
+                    (item.description != null && 
+                     item.description!.toLowerCase().contains(query));
               }).toList();
         
         if (filteredItems.isEmpty) {
@@ -219,8 +206,8 @@ class _ItemsListScreenState extends ConsumerState<ItemsListScreen>
             itemBuilder: (context, index) {
               return ItemCard(
                 item: filteredItems[index],
-                onTap: () {
-                  Navigator.push(
+                onTap: () async {
+                  final result = await Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => ItemDetailScreen(
@@ -228,6 +215,13 @@ class _ItemsListScreenState extends ConsumerState<ItemsListScreen>
                       ),
                     ),
                   );
+                  // If detail screen returned a borrower name, set search
+                  if (result != null && result is String) {
+                    setState(() {
+                      _searchQuery = result;
+                      _searchController.text = result;
+                    });
+                  }
                 },
               );
             },

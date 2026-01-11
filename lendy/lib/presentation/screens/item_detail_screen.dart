@@ -122,11 +122,25 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Item Title
-          Text(
-            item.title,
-            style: Theme.of(context).textTheme.displaySmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  item.title,
+                  style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: Icon(
+                  Icons.edit,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                onPressed: () => _handleEditTitle(item),
+                tooltip: 'Edit title',
+              ),
+            ],
           ),
           const SizedBox(height: 12),
           
@@ -153,13 +167,85 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
           const SizedBox(height: 32),
           
           // Borrower Information Section
-          _buildSectionHeader('Borrower Information'),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildSectionHeader('Borrower Information'),
+              IconButton(
+                icon: Icon(
+                  Icons.edit,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                onPressed: () => _handleEditBorrower(item),
+                tooltip: 'Edit borrower',
+              ),
+            ],
+          ),
           const SizedBox(height: 12),
-          _buildInfoCard(
-            context,
-            icon: Icons.person,
-            label: 'Borrower',
-            value: item.borrowerName,
+          GestureDetector(
+            onTap: () {
+              // Navigate back to list with borrower search
+              Navigator.pop(context, item.borrowerName);
+            },
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha:0.5),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.outline.withValues(alpha:0.2),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      Icons.person,
+                      size: 20,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Borrower',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha:0.6),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                item.borrowerName,
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ),
+                            Icon(
+                              Icons.arrow_forward_ios,
+                              size: 16,
+                              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.6),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
           if (item.borrowerContact != null) ...[
             const SizedBox(height: 12),
@@ -170,10 +256,32 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
               value: item.borrowerContact!,
             ),
           ],
+          if (item.borrowerContact == null) ...[
+            const SizedBox(height: 12),
+            _buildInfoCard(
+              context,
+              icon: Icons.contact_mail,
+              label: 'Contact',
+              value: 'Not set',
+            ),
+          ],
           const SizedBox(height: 24),
           
           // Dates Section
-          _buildSectionHeader('Dates'),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildSectionHeader('Dates'),
+              IconButton(
+                icon: Icon(
+                  Icons.edit,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                onPressed: () => _handleEditDateLent(item),
+                tooltip: 'Edit date lent',
+              ),
+            ],
+          ),
           const SizedBox(height: 12),
           _buildInfoCard(
             context,
@@ -275,22 +383,37 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
           ],
           
           // Description
-          if (item.description != null) ...[
-            const SizedBox(height: 24),
-            _buildSectionHeader('Description'),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha:0.5),
-                borderRadius: BorderRadius.circular(12),
+          const SizedBox(height: 24),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildSectionHeader('Description'),
+              IconButton(
+                icon: Icon(
+                  Icons.edit,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                onPressed: () => _handleEditDescription(item),
+                tooltip: 'Edit description',
               ),
-              child: Text(
-                item.description!,
-                style: Theme.of(context).textTheme.bodyMedium,
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha:0.5),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              item.description ?? 'No description',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: item.description != null
+                    ? Theme.of(context).colorScheme.onSurface
+                    : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
               ),
             ),
-          ],
+          ),
           
           // Photos section
           if (item.photoUrls != null && item.photoUrls!.isNotEmpty) ...[
@@ -693,6 +816,206 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
       }
     }
   }
+
+  Future<void> _handleEditTitle(Item item) async {
+    final titleController = TextEditingController(text: item.title);
+    
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit Title'),
+        content: TextField(
+          controller: titleController,
+          autofocus: true,
+          decoration: const InputDecoration(
+            labelText: 'Title',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final newTitle = titleController.text.trim();
+              if (newTitle.isNotEmpty) {
+                Navigator.pop(context, newTitle);
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+
+    if (result != null && result != item.title) {
+      await _updateItemField(item.id, {'title': result});
+    }
+  }
+
+  Future<void> _handleEditBorrower(Item item) async {
+    final borrowerNameController = TextEditingController(text: item.borrowerName);
+    final borrowerContactController = TextEditingController(text: item.borrowerContact ?? '');
+    
+    final result = await showDialog<Map<String, String?>>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit Borrower Information'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: borrowerNameController,
+                autofocus: true,
+                decoration: const InputDecoration(
+                  labelText: 'Borrower Name *',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.person),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: borrowerContactController,
+                decoration: const InputDecoration(
+                  labelText: 'Contact (optional)',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.contact_mail),
+                ),
+                keyboardType: TextInputType.emailAddress,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final newName = borrowerNameController.text.trim();
+              if (newName.isNotEmpty) {
+                Navigator.pop(context, {
+                  'borrower_name': newName,
+                  'borrower_contact': borrowerContactController.text.trim().isEmpty
+                      ? null
+                      : borrowerContactController.text.trim(),
+                });
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+
+    if (result != null) {
+      final updates = <String, dynamic>{};
+      if (result['borrower_name'] != item.borrowerName) {
+        updates['borrower_name'] = result['borrower_name'];
+      }
+      if (result['borrower_contact'] != item.borrowerContact) {
+        updates['borrower_contact'] = result['borrower_contact'];
+      }
+      if (updates.isNotEmpty) {
+        await _updateItemField(item.id, updates);
+      }
+    }
+  }
+
+  Future<void> _handleEditDateLent(Item item) async {
+    final date = await showDatePicker(
+      context: context,
+      initialDate: item.lentAt,
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now(),
+    );
+
+    if (date != null && date != item.lentAt) {
+      await _updateItemField(item.id, {
+        'lent_at': date.toIso8601String(),
+      });
+    }
+  }
+
+  Future<void> _handleEditDescription(Item item) async {
+    final descriptionController = TextEditingController(text: item.description ?? '');
+    
+    final result = await showDialog<String?>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit Description'),
+        content: TextField(
+          controller: descriptionController,
+          autofocus: true,
+          decoration: const InputDecoration(
+            labelText: 'Description',
+            border: OutlineInputBorder(),
+            hintText: 'Enter description (optional)',
+          ),
+          maxLines: 5,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final newDescription = descriptionController.text.trim();
+              Navigator.pop(context, newDescription.isEmpty ? null : newDescription);
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+
+    if (result != null && result != item.description) {
+      await _updateItemField(item.id, {'description': result});
+    }
+  }
+
+  Future<void> _updateItemField(String itemId, Map<String, dynamic> updates) async {
+    try {
+      final authState = ref.read(authStateProvider);
+      final user = authState.value;
+      
+      if (user == null) {
+        throw Exception('User not authenticated');
+      }
+
+      final repository = ref.read(itemRepositoryProvider);
+      await repository.updateItem(
+        userId: user.id,
+        itemId: itemId,
+        updates: updates,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Item updated successfully!')),
+        );
+        // Refresh the item detail and lists
+        ref.invalidate(itemDetailProvider(itemId));
+        ref.invalidate(lentItemsProvider);
+        ref.invalidate(returnedItemsProvider);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
 }
 
 class _FullScreenImage extends StatelessWidget {
