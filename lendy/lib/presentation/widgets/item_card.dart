@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../../domain/entities/item.dart';
 import '../../domain/entities/item_status.dart';
 import '../../config/app_theme.dart';
+import 'retryable_image.dart';
 
 class ItemCard extends StatelessWidget {
   final Item item;
@@ -39,20 +40,37 @@ class ItemCard extends StatelessWidget {
                   color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 ),
                 child: item.photoUrls != null && item.photoUrls!.isNotEmpty
-                    ? ClipRRect(
+                    ? RetryableImage(
+                        imageUrl: item.photoUrls!.first,
+                        width: 64,
+                        height: 64,
+                        fit: BoxFit.cover,
                         borderRadius: BorderRadius.circular(12),
-                        child: Image.network(
-                          item.photoUrls!.first,
+                        placeholder: Container(
                           width: 64,
                           height: 64,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Icon(
-                              Icons.inventory_2,
-                              size: 32,
-                              color: Theme.of(context).colorScheme.primary,
-                            );
-                          },
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            Icons.inventory_2,
+                            size: 32,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
+                        errorWidgetBuilder: (context, retry) => Container(
+                          width: 64,
+                          height: 64,
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            Icons.inventory_2,
+                            size: 32,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
                         ),
                       )
                     : Icon(

@@ -1,13 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:photo_view/photo_view.dart';
+import 'package:photo_view/photo_view_gallery.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../providers/items_provider.dart';
+import '../widgets/retryable_image.dart';
+import '../widgets/item_detail_skeleton.dart';
+import '../widgets/success_animation.dart';
 import '../../data/repositories/item_repository_providers.dart';
 import '../../domain/entities/item.dart';
 import '../../domain/entities/item_status.dart';
 import '../../services/auth_providers.dart';
 import '../../services/local_notification_service.dart';
 import '../../config/app_theme.dart';
+import '../../utils/error_handler.dart';
+import 'edit_item_screen.dart';
 
 class ItemDetailScreen extends ConsumerStatefulWidget {
   final String itemId;
@@ -35,35 +43,23 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
 
     final itemFuture = ref.watch(itemDetailProvider(widget.itemId));
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Item Details'),
+    return itemFuture.when(
+      data: (item) {
+        if (item == null) {
+          return Scaffold(
+            appBar: AppBar(title: const Text('Item Details')),
+            body: const Center(child: Text('Item not found')),
+          );
+        }
+        return _buildItemDetails(item);
+      },
+      loading: () => Scaffold(
+        appBar: AppBar(title: const Text('Item Details')),
+        body: const ItemDetailSkeleton(),
       ),
-      body: itemFuture.when(
-        data: (item) {
-          if (item == null) {
-            return const Center(child: Text('Item not found'));
-          }
-          return _buildItemDetails(item);
-        },
-        loading: () => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Loading item details...',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha:0.6),
-                ),
-              ),
-            ],
-          ),
-        ),
-        error: (error, stack) => Center(
+      error: (error, stack) => Scaffold(
+        appBar: AppBar(title: const Text('Item Details')),
+        body: Center(
           child: Padding(
             padding: const EdgeInsets.all(32.0),
             child: Column(
@@ -91,12 +87,41 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  error.toString(),
+                  ErrorHandler.getUserFriendlyMessage(error),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).colorScheme.onSurface.withValues(alpha:0.6),
                   ),
                   textAlign: TextAlign.center,
                 ),
+                if (ErrorHandler.getActionableSuggestion(error) != null) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    margin: const EdgeInsets.symmetric(horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.lightbulb_outline,
+                          size: 20,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            ErrorHandler.getActionableSuggestion(error)!,
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context).colorScheme.onPrimaryContainer,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 24),
                 ElevatedButton.icon(
                   onPressed: () {
@@ -116,11 +141,33 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
   Widget _buildItemDetails(Item item) {
     final isOverdue = item.dueAt != null && _isOverdue(item.dueAt!);
     
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Item Details'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => EditItemScreen(item: item),
+                ),
+              );
+              // Refresh item detail after editing
+              ref.invalidate(itemDetailProvider(widget.itemId));
+              ref.invalidate(lentItemsProvider);
+              ref.invalidate(returnedItemsProvider);
+            },
+            tooltip: 'Edit item',
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
           // Item Title
           Row(
             children: [
@@ -426,45 +473,42 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
                 scrollDirection: Axis.horizontal,
                 itemCount: item.photoUrls!.length,
                 itemBuilder: (context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 12),
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => _FullScreenImage(
-                              imageUrl: item.photoUrls![index],
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 12),
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => _ImageGalleryView(
+                                imageUrls: item.photoUrls!,
+                                initialIndex: index,
+                              ),
                             ),
-                          ),
-                        );
-                      },
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Image.network(
-                          item.photoUrls![index],
+                          );
+                        },
+                        child: RetryableImage(
+                          imageUrl: item.photoUrls![index],
                           width: 220,
                           height: 220,
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              width: 220,
-                              height: 220,
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                                borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(12),
+                          placeholder: Container(
+                            width: 220,
+                            height: 220,
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                color: Theme.of(context).colorScheme.primary,
                               ),
-                              child: Icon(
-                                Icons.broken_image,
-                                size: 48,
-                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha:0.4),
-                              ),
-                            );
-                          },
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  );
+                    );
                 },
               ),
             ),
@@ -499,6 +543,7 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
             ),
           ),
         ],
+        ),
       ),
     );
   }
@@ -592,16 +637,29 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Mark as Returned'),
+        icon: Icon(
+          Icons.check_circle_outline,
+          size: 48,
+          color: Theme.of(context).colorScheme.primary,
+        ),
+        title: const Text(
+          'Mark as Returned',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         content: const Text('Are you sure this item has been returned?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: const Text('Cancel'),
           ),
-          ElevatedButton(
+          ElevatedButton.icon(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Confirm'),
+            icon: const Icon(Icons.check),
+            label: const Text('Confirm'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              foregroundColor: Theme.of(context).colorScheme.onPrimary,
+            ),
           ),
         ],
       ),
@@ -622,24 +680,38 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
         userId: user.id,
         itemId: itemId,
       );
+      
+      // Cancel notification when item is marked as returned
+      final notificationService = LocalNotificationService();
+      await notificationService.cancelReminder(itemId.hashCode);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Item marked as returned!')),
+        SuccessAnimation.show(
+          context,
+          'Item marked as returned!',
+          onComplete: () {
+            // Refresh the item detail and lists
+            ref.invalidate(itemDetailProvider(itemId));
+            ref.invalidate(lentItemsProvider);
+            ref.invalidate(returnedItemsProvider);
+            // Navigate back
+            Navigator.pop(context);
+          },
         );
-        // Refresh the item detail and lists
-        ref.invalidate(itemDetailProvider(itemId));
-        ref.invalidate(lentItemsProvider);
-        ref.invalidate(returnedItemsProvider);
-        // Navigate back
-        Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: ${e.toString()}'),
+            content: Text(ErrorHandler.getUserFriendlyMessage(e)),
             backgroundColor: Colors.red,
+            action: ErrorHandler.isRecoverable(e)
+                ? SnackBarAction(
+                    label: 'Retry',
+                    textColor: Colors.white,
+                    onPressed: () => _handleMarkAsReturned(itemId),
+                  )
+                : null,
           ),
         );
       }
@@ -650,19 +722,31 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Item'),
-        content: const Text('Are you sure you want to delete this item? This action cannot be undone.'),
+        icon: Icon(
+          Icons.warning_amber_rounded,
+          size: 48,
+          color: Theme.of(context).colorScheme.error,
+        ),
+        title: const Text(
+          'Delete Item',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        content: const Text(
+          'Are you sure you want to delete this item? This action cannot be undone.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: const Text('Cancel'),
           ),
-          ElevatedButton(
+          ElevatedButton.icon(
             onPressed: () => Navigator.pop(context, true),
+            icon: const Icon(Icons.delete),
+            label: const Text('Delete'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.onError,
             ),
-            child: const Text('Delete'),
           ),
         ],
       ),
@@ -671,6 +755,10 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
     if (confirmed != true) return;
 
     try {
+      // Cancel notification before deleting item
+      final notificationService = LocalNotificationService();
+      await notificationService.cancelReminder(itemId.hashCode);
+      
       final authState = ref.read(authStateProvider);
       final user = authState.value;
       
@@ -685,20 +773,30 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
       );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Item deleted')),
+        SuccessAnimation.show(
+          context,
+          'Item deleted',
+          onComplete: () {
+            // Refresh lists
+            ref.invalidate(lentItemsProvider);
+            ref.invalidate(returnedItemsProvider);
+            Navigator.pop(context);
+          },
         );
-        // Refresh lists
-        ref.invalidate(lentItemsProvider);
-        ref.invalidate(returnedItemsProvider);
-        Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: ${e.toString()}'),
+            content: Text(ErrorHandler.getUserFriendlyMessage(e)),
             backgroundColor: Colors.red,
+            action: ErrorHandler.isRecoverable(e)
+                ? SnackBarAction(
+                    label: 'Retry',
+                    textColor: Colors.white,
+                    onPressed: () => _handleMarkAsReturned(itemId),
+                  )
+                : null,
           ),
         );
       }
@@ -731,6 +829,19 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
       time.hour,
       time.minute,
     );
+    
+    // Validate that reminder is in the future
+    if (reminderAt.isBefore(DateTime.now())) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Reminder date must be in the future'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    }
 
     try {
       final authState = ref.read(authStateProvider);
@@ -769,8 +880,15 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: ${e.toString()}'),
+            content: Text(ErrorHandler.getUserFriendlyMessage(e)),
             backgroundColor: Colors.red,
+            action: ErrorHandler.isRecoverable(e)
+                ? SnackBarAction(
+                    label: 'Retry',
+                    textColor: Colors.white,
+                    onPressed: () => _handleMarkAsReturned(itemId),
+                  )
+                : null,
           ),
         );
       }
@@ -809,8 +927,15 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: ${e.toString()}'),
+            content: Text(ErrorHandler.getUserFriendlyMessage(e)),
             backgroundColor: Colors.red,
+            action: ErrorHandler.isRecoverable(e)
+                ? SnackBarAction(
+                    label: 'Retry',
+                    textColor: Colors.white,
+                    onPressed: () => _handleMarkAsReturned(itemId),
+                  )
+                : null,
           ),
         );
       }
@@ -996,8 +1121,9 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
       );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Item updated successfully!')),
+        SuccessAnimation.show(
+          context,
+          'Item updated successfully!',
         );
         // Refresh the item detail and lists
         ref.invalidate(itemDetailProvider(itemId));
@@ -1008,8 +1134,15 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: ${e.toString()}'),
+            content: Text(ErrorHandler.getUserFriendlyMessage(e)),
             backgroundColor: Colors.red,
+            action: ErrorHandler.isRecoverable(e)
+                ? SnackBarAction(
+                    label: 'Retry',
+                    textColor: Colors.white,
+                    onPressed: () => _handleMarkAsReturned(itemId),
+                  )
+                : null,
           ),
         );
       }
@@ -1018,10 +1151,35 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
 
 }
 
-class _FullScreenImage extends StatelessWidget {
-  final String imageUrl;
+class _ImageGalleryView extends StatefulWidget {
+  final List<String> imageUrls;
+  final int initialIndex;
 
-  const _FullScreenImage({required this.imageUrl});
+  const _ImageGalleryView({
+    required this.imageUrls,
+    this.initialIndex = 0,
+  });
+
+  @override
+  State<_ImageGalleryView> createState() => _ImageGalleryViewState();
+}
+
+class _ImageGalleryViewState extends State<_ImageGalleryView> {
+  late PageController _pageController;
+  late int _currentIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
+    _pageController = PageController(initialPage: widget.initialIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1030,11 +1188,56 @@ class _FullScreenImage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         iconTheme: const IconThemeData(color: Colors.white),
-      ),
-      body: Center(
-        child: InteractiveViewer(
-          child: Image.network(imageUrl),
+        title: Text(
+          '${_currentIndex + 1} of ${widget.imageUrls.length}',
+          style: const TextStyle(color: Colors.white),
         ),
+      ),
+      body: PhotoViewGallery.builder(
+        scrollPhysics: const BouncingScrollPhysics(),
+        builder: (BuildContext context, int index) {
+          return PhotoViewGalleryPageOptions(
+            imageProvider: CachedNetworkImageProvider(widget.imageUrls[index]),
+            initialScale: PhotoViewComputedScale.contained,
+            minScale: PhotoViewComputedScale.contained,
+            maxScale: PhotoViewComputedScale.covered * 2,
+            errorBuilder: (context, error, stackTrace) => Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.broken_image,
+                    size: 64,
+                    color: Colors.white70,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Failed to load image',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+        itemCount: widget.imageUrls.length,
+        loadingBuilder: (context, event) => Center(
+          child: CircularProgressIndicator(
+            value: event == null
+                ? 0
+                : event.cumulativeBytesLoaded / event.expectedTotalBytes!,
+            color: Colors.white,
+          ),
+        ),
+        pageController: _pageController,
+        onPageChanged: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
       ),
     );
   }

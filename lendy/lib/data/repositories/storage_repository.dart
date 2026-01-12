@@ -46,28 +46,36 @@ class StorageRepository {
   }
 
   // Handle multiple photo uploads
-  Future<List<String>> uploadPhotos({
+  Future<PhotoUploadResult> uploadPhotos({
     required String userId,
     required String itemId,
     required List<File> imageFiles,
   }) async {
-    final List<String> urls = [];
+    final List<String> successfulUrls = [];
+    final List<PhotoUploadError> errors = [];
     
-    for (final file in imageFiles) {
+    for (int i = 0; i < imageFiles.length; i++) {
+      final file = imageFiles[i];
       try {
         final url = await uploadPhoto(
           userId: userId,
           itemId: itemId,
           imageFile: file,
         );
-        urls.add(url);
+        successfulUrls.add(url);
       } catch (e) {
-        // Error uploading photo - continue with other files
-        // Error is silently handled to allow other uploads to proceed
+        errors.add(PhotoUploadError(
+          fileName: file.path.split('/').last,
+          index: i,
+          error: e.toString(),
+        ));
       }
     }
     
-    return urls;
+    return PhotoUploadResult(
+      successfulUrls: successfulUrls,
+      errors: errors,
+    );
   }
 
   // 15.5: Delete Photo Method
@@ -107,5 +115,31 @@ class StorageRepository {
       }
     }
   }
+}
+
+class PhotoUploadResult {
+  final List<String> successfulUrls;
+  final List<PhotoUploadError> errors;
+  
+  PhotoUploadResult({
+    required this.successfulUrls,
+    required this.errors,
+  });
+  
+  bool get hasErrors => errors.isNotEmpty;
+  bool get hasSuccess => successfulUrls.isNotEmpty;
+  bool get isPartialSuccess => hasSuccess && hasErrors;
+}
+
+class PhotoUploadError {
+  final String fileName;
+  final int index;
+  final String error;
+  
+  PhotoUploadError({
+    required this.fileName,
+    required this.index,
+    required this.error,
+  });
 }
 

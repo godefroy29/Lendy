@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../services/auth_providers.dart';
+import '../../utils/error_handler.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -84,16 +85,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       }
     } catch (e) {
       if (mounted) {
-        String errorMessage = 'An error occurred';
-        if (e.toString().contains('User already registered')) {
-          errorMessage = 'This email is already registered';
-        } else if (e.toString().contains('Password')) {
-          errorMessage = 'Password does not meet requirements';
-        } else if (e.toString().contains('Invalid email')) {
-          errorMessage = 'Please enter a valid email address';
-        } else {
-          errorMessage = e.toString();
-        }
+        String errorMessage = ErrorHandler.getUserFriendlyMessage(e);
         setState(() {
           _errorMessage = errorMessage;
           _isLoading = false;

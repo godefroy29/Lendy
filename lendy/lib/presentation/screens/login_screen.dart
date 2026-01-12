@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../services/auth_providers.dart';
+import '../../utils/error_handler.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -46,13 +47,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         Navigator.of(context).pushReplacementNamed('/home');
       }
     } catch (e) {
-      String errorMessage = 'An error occurred';
+      String errorMessage = ErrorHandler.getUserFriendlyMessage(e);
+      // Override for specific login errors
       if (e.toString().contains('Invalid login credentials')) {
-        errorMessage = 'Invalid email or password';
+        errorMessage = 'Invalid email or password. Please check your credentials and try again.';
       } else if (e.toString().contains('Email not confirmed')) {
-        errorMessage = 'Please verify your email before logging in';
-      } else {
-        errorMessage = e.toString();
+        errorMessage = 'Please verify your email before logging in. Check your inbox for the verification link.';
       }
       setState(() {
         _errorMessage = errorMessage;
