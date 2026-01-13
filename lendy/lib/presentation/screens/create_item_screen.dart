@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
@@ -35,9 +36,20 @@ class _CreateItemScreenState extends ConsumerState<CreateItemScreen> {
   DateTime _lentAt = DateTime.now();
   DateTime? _dueAt;
   DateTime? _reminderAt;
+  String? _category;
   
   final List<File> _selectedImages = [];
   bool _isLoading = false;
+  
+  // Predefined categories
+  static const List<String> _predefinedCategories = [
+    'Books',
+    'Tools',
+    'Electronics',
+    'Clothing',
+    'Games',
+    'Other',
+  ];
 
   @override
   void initState() {
@@ -116,9 +128,11 @@ class _CreateItemScreenState extends ConsumerState<CreateItemScreen> {
 
   Future<void> _handleSave() async {
     if (!_formKey.currentState!.validate()) {
+      HapticFeedback.lightImpact();
       return;
     }
 
+    HapticFeedback.mediumImpact();
     setState(() {
       _isLoading = true;
     });
@@ -152,6 +166,7 @@ class _CreateItemScreenState extends ConsumerState<CreateItemScreen> {
         status: ItemStatus.lent,
         returnedAt: null,
         photoUrls: null,
+        category: _category,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
@@ -215,6 +230,7 @@ class _CreateItemScreenState extends ConsumerState<CreateItemScreen> {
       }
 
       if (mounted) {
+        HapticFeedback.mediumImpact();
         SuccessAnimation.show(
           context,
           'Item created successfully!',
@@ -311,6 +327,9 @@ class _CreateItemScreenState extends ConsumerState<CreateItemScreen> {
                 ),
                 keyboardType: TextInputType.emailAddress,
               ),
+              const SizedBox(height: 16),
+              // Category selector
+              _buildCategorySelector(context),
               const SizedBox(height: 20),
               _buildDatePickerTile(
                 context,
@@ -462,14 +481,15 @@ class _CreateItemScreenState extends ConsumerState<CreateItemScreen> {
                                 child: IconButton(
                                   icon: const Icon(Icons.close, size: 18, color: Colors.white),
                                   onPressed: () {
+                                    HapticFeedback.lightImpact();
                                     setState(() {
                                       _selectedImages.removeAt(index);
                                     });
                                   },
                                   padding: EdgeInsets.zero,
                                   constraints: const BoxConstraints(
-                                    minWidth: 28,
-                                    minHeight: 28,
+                                    minWidth: 44,
+                                    minHeight: 44,
                                   ),
                                 ),
                               ),
@@ -485,11 +505,15 @@ class _CreateItemScreenState extends ConsumerState<CreateItemScreen> {
               
               // Add photo button
               OutlinedButton.icon(
-                onPressed: _pickImages,
+                onPressed: () {
+                  HapticFeedback.lightImpact();
+                  _pickImages();
+                },
                 icon: const Icon(Icons.add_photo_alternate),
                 label: const Text('Add Photos'),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 14),
+                  minimumSize: const Size(0, 44), // Minimum touch target
                 ),
               ),
               const SizedBox(height: 32),
@@ -497,9 +521,13 @@ class _CreateItemScreenState extends ConsumerState<CreateItemScreen> {
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: _isLoading ? null : () => Navigator.pop(context),
+                      onPressed: _isLoading ? null : () {
+                        HapticFeedback.lightImpact();
+                        Navigator.pop(context);
+                      },
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
+                        minimumSize: const Size(0, 44), // Minimum touch target
                       ),
                       child: const Text('Cancel'),
                     ),
@@ -511,6 +539,7 @@ class _CreateItemScreenState extends ConsumerState<CreateItemScreen> {
                       onPressed: _isLoading ? null : _handleSave,
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
+                        minimumSize: const Size(0, 44), // Minimum touch target
                       ),
                       child: _isLoading
                           ? const SizedBox(
@@ -599,9 +628,15 @@ class _CreateItemScreenState extends ConsumerState<CreateItemScreen> {
                   size: 20,
                   color: Theme.of(context).colorScheme.onSurface.withValues(alpha:0.6),
                 ),
-                onPressed: onClear,
+                onPressed: () {
+                  HapticFeedback.lightImpact();
+                  onClear();
+                },
                 padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
+                constraints: const BoxConstraints(
+                  minWidth: 44,
+                  minHeight: 44,
+                ),
               ),
             const SizedBox(width: 8),
             Icon(
@@ -612,6 +647,219 @@ class _CreateItemScreenState extends ConsumerState<CreateItemScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildCategorySelector(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha:0.5),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withValues(alpha:0.2),
+        ),
+      ),
+      child: InkWell(
+        onTap: () => _showCategoryPicker(context),
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha:0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.category,
+                  size: 20,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Category (optional)',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha:0.6),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _category ?? 'Not set',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: _category == null
+                            ? Theme.of(context).colorScheme.onSurface.withValues(alpha:0.5)
+                            : Theme.of(context).colorScheme.onSurface,
+                        fontWeight: _category == null ? FontWeight.normal : FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (_category != null)
+                IconButton(
+                  icon: Icon(
+                    Icons.clear,
+                    size: 20,
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha:0.6),
+                  ),
+                  onPressed: () {
+                    HapticFeedback.lightImpact();
+                    setState(() {
+                      _category = null;
+                    });
+                  },
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(
+                    minWidth: 44,
+                    minHeight: 44,
+                  ),
+                ),
+              const SizedBox(width: 8),
+              Icon(
+                Icons.chevron_right,
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha:0.4),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showCategoryPicker(BuildContext context) async {
+    HapticFeedback.lightImpact();
+    final TextEditingController customCategoryController = TextEditingController();
+    
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Select Category'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Predefined categories
+              ..._predefinedCategories.map((category) => ListTile(
+                title: Text(category),
+                selected: _category == category,
+                selectedTileColor: Theme.of(context).colorScheme.primaryContainer,
+                onTap: () {
+                  HapticFeedback.mediumImpact();
+                  Navigator.pop(context, category);
+                },
+                trailing: _category == category
+                    ? Icon(
+                        Icons.check,
+                        color: Theme.of(context).colorScheme.primary,
+                      )
+                    : null,
+              )),
+              const Divider(),
+              // Custom category option
+              ListTile(
+                leading: const Icon(Icons.add),
+                title: const Text('Add Custom Category'),
+                onTap: () async {
+                  Navigator.pop(context);
+                  // Show dialog for custom category
+                  await Future.delayed(const Duration(milliseconds: 200));
+                  final customCategory = await showDialog<String>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Custom Category'),
+                      content: TextField(
+                        controller: customCategoryController,
+                        autofocus: true,
+                        decoration: const InputDecoration(
+                          labelText: 'Category Name',
+                          hintText: 'Enter category name',
+                          border: OutlineInputBorder(),
+                        ),
+                        textCapitalization: TextCapitalization.words,
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            HapticFeedback.lightImpact();
+                            Navigator.pop(context);
+                          },
+                          style: TextButton.styleFrom(
+                            minimumSize: const Size(88, 44),
+                          ),
+                          child: const Text('Cancel'),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            final category = customCategoryController.text.trim();
+                            if (category.isNotEmpty) {
+                              HapticFeedback.mediumImpact();
+                              Navigator.pop(context, category);
+                            } else {
+                              HapticFeedback.lightImpact();
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            minimumSize: const Size(88, 44),
+                          ),
+                          child: const Text('Add'),
+                        ),
+                      ],
+                    ),
+                  );
+                  if (customCategory != null && mounted) {
+                    setState(() {
+                      _category = customCategory;
+                    });
+                  }
+                },
+              ),
+              // Clear category option
+              if (_category != null)
+                ListTile(
+                  leading: Icon(
+                    Icons.clear,
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+                  title: Text(
+                    'Clear Category',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    Navigator.pop(context, '');
+                  },
+                ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              HapticFeedback.lightImpact();
+              Navigator.pop(context);
+            },
+            style: TextButton.styleFrom(
+              minimumSize: const Size(88, 44),
+            ),
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
+
+    if (result != null && mounted) {
+      setState(() {
+        _category = result.isEmpty ? null : result;
+      });
+    }
   }
 }
 

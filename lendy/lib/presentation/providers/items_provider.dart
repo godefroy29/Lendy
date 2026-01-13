@@ -91,6 +91,7 @@ class PaginatedItemsNotifier {
           userId: user.id,
           searchQuery: params.searchQuery!,
           status: params.status,
+          category: params.category,
           limit: _itemsPerPage,
           offset: offset,
         );
@@ -98,6 +99,7 @@ class PaginatedItemsNotifier {
         newItems = await repository.getItems(
           userId: user.id,
           status: params.status,
+          category: params.category,
           limit: _itemsPerPage,
           offset: offset,
         );
@@ -130,8 +132,9 @@ class PaginatedItemsNotifier {
 class PaginatedItemsParams {
   final ItemStatus? status;
   final String? searchQuery;
+  final String? category;
 
-  PaginatedItemsParams({this.status, this.searchQuery});
+  PaginatedItemsParams({this.status, this.searchQuery, this.category});
 
   @override
   bool operator ==(Object other) =>
@@ -139,10 +142,11 @@ class PaginatedItemsParams {
       other is PaginatedItemsParams &&
           runtimeType == other.runtimeType &&
           status == other.status &&
-          searchQuery == other.searchQuery;
+          searchQuery == other.searchQuery &&
+          category == other.category;
 
   @override
-  int get hashCode => status.hashCode ^ searchQuery.hashCode;
+  int get hashCode => status.hashCode ^ searchQuery.hashCode ^ category.hashCode;
 }
 
 // Legacy providers for backward compatibility (non-paginated)

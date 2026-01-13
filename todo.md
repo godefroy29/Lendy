@@ -4,63 +4,63 @@ This document contains categorized proposals for new functionality, bug fixes, a
 
 ## Feature Index
 
-| Code | Title | Priority | Category | Status | Difficulty |
-|------|-------|----------|----------|--------|------------|
-| **❌ NOT IMPLEMENTED** ||||||
-| 1.2 | Password Reset/Forgot Password Feature | High | New Functionality | ❌ Not Implemented | 5 ⭐⭐⭐⭐⭐ |
-| 5.1 | Secure API Keys | High | Security & Privacy | ❌ Not Implemented | 6 ⭐⭐⭐⭐⭐⭐ |
-| 1.9 | Borrower Contact Quick Actions | Medium | New Functionality | ❌ Not Implemented | 3 ⭐⭐⭐ |
-| 1.3 | Email Verification Status Check | Medium | New Functionality | ❌ Not Implemented | 6 ⭐⭐⭐⭐⭐⭐ |
-| 1.4 | Item Categories/Tags System | Medium | New Functionality | ❌ Not Implemented | 7 ⭐⭐⭐⭐⭐⭐⭐ |
-| 6.1 | Add Screen Reader Support | Medium | Accessibility | ❌ Not Implemented | 7 ⭐⭐⭐⭐⭐⭐⭐ |
-| 4.5 | Implement Proper Error Logging | Medium | Performance & Technical | ❌ Not Implemented | 8 ⭐⭐⭐⭐⭐⭐⭐⭐ |
-| 5.5 | Add Data Deletion on Account Deletion | Medium | Security & Privacy | ❌ Not Implemented | 8 ⭐⭐⭐⭐⭐⭐⭐⭐ |
-| 4.4 | Add Offline Support | Medium | Performance & Technical | ❌ Not Implemented | 9 ⭐⭐⭐⭐⭐⭐⭐⭐⭐ |
-| 3.7 | Add Haptic Feedback | Low | UI/UX Improvements | ❌ Not Implemented | 2 ⭐⭐ |
-| 6.2 | Improve Touch Target Sizes | Low | Accessibility | ❌ Not Implemented | 3 ⭐⭐⭐ |
-| 3.10 | Add Onboarding/Tutorial for New Users | Low | UI/UX Improvements | ❌ Not Implemented | 6 ⭐⭐⭐⭐⭐⭐ |
-| 5.3 | Add Session Timeout | Low | Security & Privacy | ❌ Not Implemented | 6 ⭐⭐⭐⭐⭐⭐ |
-| 1.5 | Item Value/Price Tracking | Low | New Functionality | ❌ Not Implemented | 6 ⭐⭐⭐⭐⭐⭐ |
-| 1.7 | Export Data Feature | Low | New Functionality | ❌ Not Implemented | 7 ⭐⭐⭐⭐⭐⭐⭐ |
-| 6.3 | Add High Contrast Mode Support | Low | Accessibility | ❌ Not Implemented | 7 ⭐⭐⭐⭐⭐⭐⭐ |
-| 1.8 | Recurring Lending Feature | Low | New Functionality | ❌ Not Implemented | 8 ⭐⭐⭐⭐⭐⭐⭐⭐ |
-| 1.11 | Item Notes/History Log | Low | New Functionality | ❌ Not Implemented | 8 ⭐⭐⭐⭐⭐⭐⭐⭐ |
-| 4.7 | Optimize App Size | Low | Performance & Technical | ❌ Not Implemented | 8 ⭐⭐⭐⭐⭐⭐⭐⭐ |
-| 1.12 | Backup and Restore Feature | Low | New Functionality | ❌ Not Implemented | 9 ⭐⭐⭐⭐⭐⭐⭐⭐⭐ |
-| **🚫 NOT PLANNED** ||||||
-| 1.6 | Statistics and Analytics Dashboard | Medium | New Functionality | 🚫 Not Planned | 7 ⭐⭐⭐⭐⭐⭐⭐ |
-| 5.2 | Add Biometric Authentication | Medium | Security & Privacy | 🚫 Not Planned | 7 ⭐⭐⭐⭐⭐⭐⭐ |
-| 5.4 | Encrypt Sensitive Local Data | Medium | Security & Privacy | 🚫 Not Planned | 7 ⭐⭐⭐⭐⭐⭐⭐ |
-| 4.6 | Add Unit and Widget Tests | Medium | Performance & Technical | 🚫 Not Planned | 8 ⭐⭐⭐⭐⭐⭐⭐⭐ |
-| **✅ IMPLEMENTED** ||||||
-| 1.1 | Edit Item Feature | High | New Functionality | ✅ Implemented | 6 ⭐⭐⭐⭐⭐⭐ |
-| 2.1 | Search Functionality Not Using Repository Search Method | High | Bug Fixes | ✅ Implemented | 5 ⭐⭐⭐⭐⭐ |
-| 2.2 | Notification Not Cancelled When Item Deleted | Medium | Bug Fixes | ✅ Implemented | 1 ⭐ |
-| 2.3 | Photo Upload Errors Not Properly Handled | Medium | Bug Fixes | ✅ Implemented | 4 ⭐⭐⭐⭐ |
-| 3.11 | Improve Error Messages | Medium | UI/UX Improvements | ✅ Implemented | 4 ⭐⭐⭐⭐ |
-| 4.1 | Implement Image Caching | Medium | Performance & Technical | ✅ Implemented | 5 ⭐⭐⭐⭐⭐ |
-| 4.3 | Optimize Database Queries | Medium | Performance & Technical | ✅ Implemented | 7 ⭐⭐⭐⭐⭐⭐⭐ |
-| 2.4 | Reminder Date Validation Missing | Low | Bug Fixes | ✅ Implemented | 1 ⭐ |
-| 2.6 | Form Validation Not Triggered on Submit in Some Cases | Low | Bug Fixes | ✅ Implemented | 2 ⭐⭐ |
-| 2.5 | Image Loading Errors Not User-Friendly | Low | Bug Fixes | ✅ Implemented | 3 ⭐⭐⭐ |
-| 1.10 | Dark Mode Support | Medium | New Functionality | ✅ Implemented | - |
-| 3.1 | Improve Empty States | Medium | UI/UX Improvements | ✅ Implemented | - |
-| 3.3 | Improve Item Card Design | Medium | UI/UX Improvements | ✅ Implemented | - |
-| 3.4 | Add Loading Skeletons | Medium | UI/UX Improvements | ✅ Implemented | 5 ⭐⭐⭐⭐⭐ |
-| 3.5 | Improve Form Input UX | Medium | UI/UX Improvements | ✅ Implemented | - |
-| 3.8 | Improve Search UI | Medium | UI/UX Improvements | ✅ Implemented | - |
-| 3.2 | Add Pull-to-Refresh Visual Feedback | Low | UI/UX Improvements | ✅ Implemented | - |
-| 3.6 | Add Confirmation Dialogs with Better Design | Low | UI/UX Improvements | ✅ Implemented | 3 ⭐⭐⭐ |
-| 3.9 | Add Image Gallery View | Low | UI/UX Improvements | ✅ Implemented | 5 ⭐⭐⭐⭐⭐ |
-| 3.12 | Add Success Animations | Low | UI/UX Improvements | ✅ Implemented | 5 ⭐⭐⭐⭐⭐ |
-| 4.2 | Add Pagination for Large Item Lists | Low | Performance & Technical | ✅ Implemented | 7 ⭐⭐⭐⭐⭐⭐⭐ |
+| Code | Title | Details | Priority | Category | Status | Difficulty | Modification Location |
+|------|-------|---------|----------|----------|--------|------------|----------------------|
+| **❌ NOT IMPLEMENTED** ||||||||
+| 5.1 | Secure API Keys | Move Supabase credentials to environment variables or secure storage | High | Security & Privacy | ❌ Not Implemented | 6 ⭐⭐⭐⭐⭐⭐ | Flutter Code + Config |
+| 1.9 | Borrower Contact Quick Actions | Add quick actions to contact borrowers (call, email, SMS) | Medium | New Functionality | ❌ Not Implemented | 3 ⭐⭐⭐ | Flutter Code |
+| 1.3 | Email Verification Status Check | Check and display email verification status, prompt users to verify if not verified | Medium | New Functionality | ❌ Not Implemented | 6 ⭐⭐⭐⭐⭐⭐ | Flutter Code |
+| 6.1 | Add Screen Reader Support | Ensure app is accessible to users with visual impairments | Medium | Accessibility | ❌ Not Implemented | 7 ⭐⭐⭐⭐⭐⭐⭐ | Flutter Code |
+| 4.5 | Implement Proper Error Logging | Add comprehensive error logging for debugging and monitoring | Medium | Performance & Technical | ❌ Not Implemented | 8 ⭐⭐⭐⭐⭐⭐⭐⭐ | Flutter Code + External |
+| 5.5 | Add Data Deletion on Account Deletion | Allow users to delete their account and all associated data | Medium | Security & Privacy | ❌ Not Implemented | 8 ⭐⭐⭐⭐⭐⭐⭐⭐ | Flutter Code + Supabase |
+| 4.4 | Add Offline Support | Allow app to work offline with local data storage | Medium | Performance & Technical | ❌ Not Implemented | 9 ⭐⭐⭐⭐⭐⭐⭐⭐⭐ | Flutter Code + External |
+| 3.10 | Add Onboarding/Tutorial for New Users | Guide new users through the app with an onboarding flow | Low | UI/UX Improvements | ❌ Not Implemented | 6 ⭐⭐⭐⭐⭐⭐ | Flutter Code + External |
+| 1.7 | Export Data Feature | Allow users to export their items data to CSV or PDF | Low | New Functionality | ❌ Not Implemented | 7 ⭐⭐⭐⭐⭐⭐⭐ | Flutter Code + External |
+| 6.3 | Add High Contrast Mode Support | Support system high contrast mode for better visibility | Low | Accessibility | ❌ Not Implemented | 7 ⭐⭐⭐⭐⭐⭐⭐ | Flutter Code |
+| 1.8 | Recurring Lending Feature | Track items that are lent repeatedly to the same borrower | Low | New Functionality | ❌ Not Implemented | 8 ⭐⭐⭐⭐⭐⭐⭐⭐ | Flutter Code + Supabase |
+| 1.11 | Item Notes/History Log | Allow users to add notes and track history of interactions with borrowers | Low | New Functionality | ❌ Not Implemented | 8 ⭐⭐⭐⭐⭐⭐⭐⭐ | Flutter Code + Supabase |
+| 4.7 | Optimize App Size | Reduce app bundle size for faster downloads | Low | Performance & Technical | ❌ Not Implemented | 8 ⭐⭐⭐⭐⭐⭐⭐⭐ | Flutter Code |
+| 1.12 | Backup and Restore Feature | Allow users to backup their data to cloud storage and restore it | Low | New Functionality | ❌ Not Implemented | 9 ⭐⭐⭐⭐⭐⭐⭐⭐⭐ | Flutter Code + External |
+| **🚫 NOT PLANNED** ||||||||
+| 1.6 | Statistics and Analytics Dashboard | Show statistics about lent items (total items, overdue items, total value, etc.) | Medium | New Functionality | 🚫 Not Planned | 7 ⭐⭐⭐⭐⭐⭐⭐ | Flutter Code + External |
+| 1.5 | Item Value/Price Tracking | Allow users to track the monetary value of lent items | Low | New Functionality | 🚫 Not Planned | 6 ⭐⭐⭐⭐⭐⭐ | Flutter Code + Supabase |
+| 5.3 | Add Session Timeout | Automatically log out users after period of inactivity | Low | Security & Privacy | 🚫 Not Planned | 6 ⭐⭐⭐⭐⭐⭐ | Flutter Code |
+| 5.2 | Add Biometric Authentication | Add fingerprint/face ID authentication for app access | Medium | Security & Privacy | 🚫 Not Planned | 7 ⭐⭐⭐⭐⭐⭐⭐ | Flutter Code + External |
+| 5.4 | Encrypt Sensitive Local Data | Encrypt sensitive data stored locally (if any) | Medium | Security & Privacy | 🚫 Not Planned | 7 ⭐⭐⭐⭐⭐⭐⭐ | Flutter Code + External |
+| 4.6 | Add Unit and Widget Tests | Add comprehensive test coverage for critical functionality | Medium | Performance & Technical | 🚫 Not Planned | 8 ⭐⭐⭐⭐⭐⭐⭐⭐ | Flutter Code |
+| **✅ IMPLEMENTED** ||||||||
+| 1.1 | Edit Item Feature | Allow users to edit existing items after creation | High | New Functionality | ✅ Implemented | 6 ⭐⭐⭐⭐⭐⭐ | Flutter Code |
+| 1.2 | Password Reset/Forgot Password Feature | Allow users to reset their password if they forget it | High | New Functionality | ✅ Implemented | 5 ⭐⭐⭐⭐⭐ | Flutter Code |
+| 1.4 | Item Categories/Tags System | Allow users to categorize items (e.g., Books, Tools, Electronics, Clothing) | Medium | New Functionality | ✅ Implemented | 7 ⭐⭐⭐⭐⭐⭐⭐ | Flutter Code + Supabase |
+| 2.1 | Search Functionality Not Using Repository Search Method | The search in `ItemsListScreen` is done client-side, but there's a `searchItems` method in the repository that's not being used | High | Bug Fixes | ✅ Implemented | 5 ⭐⭐⭐⭐⭐ | Flutter Code |
+| 2.2 | Notification Not Cancelled When Item Deleted | When an item is deleted, its scheduled notification is not cancelled | Medium | Bug Fixes | ✅ Implemented | 1 ⭐ | Flutter Code |
+| 2.3 | Photo Upload Errors Not Properly Handled | In `StorageRepository.uploadPhotos()`, errors are silently ignored, which may lead to incomplete uploads without user notification | Medium | Bug Fixes | ✅ Implemented | 4 ⭐⭐⭐⭐ | Flutter Code |
+| 3.11 | Improve Error Messages | Make error messages more user-friendly and actionable | Medium | UI/UX Improvements | ✅ Implemented | 4 ⭐⭐⭐⭐ | Flutter Code |
+| 4.1 | Implement Image Caching | Cache images to improve load times and reduce network usage | Medium | Performance & Technical | ✅ Implemented | 5 ⭐⭐⭐⭐⭐ | Flutter Code + External |
+| 4.3 | Optimize Database Queries | Review and optimize Supabase queries for better performance | Medium | Performance & Technical | ✅ Implemented | 7 ⭐⭐⭐⭐⭐⭐⭐ | Flutter Code + Supabase |
+| 2.4 | Reminder Date Validation Missing | Users can set reminders in the past, which won't trigger notifications | Low | Bug Fixes | ✅ Implemented | 1 ⭐ | Flutter Code |
+| 2.6 | Form Validation Not Triggered on Submit in Some Cases | In `CreateItemScreen`, form validation might not show all errors if user submits without interacting with fields | Low | Bug Fixes | ✅ Implemented | 2 ⭐⭐ | Flutter Code |
+| 2.5 | Image Loading Errors Not User-Friendly | When images fail to load in `ItemCard` and `ItemDetailScreen`, error handling shows generic broken image icon without retry option | Low | Bug Fixes | ✅ Implemented | 3 ⭐⭐⭐ | Flutter Code + External |
+| 1.10 | Dark Mode Support | Add dark mode/theme switching functionality | Medium | New Functionality | ✅ Implemented | - | Flutter Code + External |
+| 3.1 | Improve Empty States | Enhance empty state messages with illustrations and actionable guidance | Medium | UI/UX Improvements | ✅ Implemented | - | Flutter Code |
+| 3.3 | Improve Item Card Design | Enhance `ItemCard` with better visual hierarchy and information display | Medium | UI/UX Improvements | ✅ Implemented | - | Flutter Code + External |
+| 3.4 | Add Loading Skeletons | Replace generic `CircularProgressIndicator` with skeleton loaders for better perceived performance | Medium | UI/UX Improvements | ✅ Implemented | 5 ⭐⭐⭐⭐⭐ | Flutter Code + External |
+| 3.5 | Improve Form Input UX | Enhance form inputs with better labels, hints, and validation feedback | Medium | UI/UX Improvements | ✅ Implemented | - | Flutter Code |
+| 3.8 | Improve Search UI | Replace dialog-based search with a better search experience | Medium | UI/UX Improvements | ✅ Implemented | - | Flutter Code + External |
+| 3.2 | Add Pull-to-Refresh Visual Feedback | Improve pull-to-refresh experience with better visual indicators | Low | UI/UX Improvements | ✅ Implemented | - | Flutter Code |
+| 3.6 | Add Confirmation Dialogs with Better Design | Improve confirmation dialogs with icons, better messaging, and Material 3 design | Low | UI/UX Improvements | ✅ Implemented | 3 ⭐⭐⭐ | Flutter Code |
+| 3.9 | Add Image Gallery View | Improve photo viewing experience with a proper gallery | Low | UI/UX Improvements | ✅ Implemented | 5 ⭐⭐⭐⭐⭐ | Flutter Code + External |
+| 3.12 | Add Success Animations | Add celebratory animations for successful actions | Low | UI/UX Improvements | ✅ Implemented | 5 ⭐⭐⭐⭐⭐ | Flutter Code |
+| 3.7 | Add Haptic Feedback | Add haptic feedback for important actions to improve user experience | Low | UI/UX Improvements | ✅ Implemented | 2 ⭐⭐ | Flutter Code |
+| 6.2 | Improve Touch Target Sizes | Ensure all touch targets meet minimum size requirements (44x44 points) | Low | Accessibility | ✅ Implemented | 3 ⭐⭐⭐ | Flutter Code |
+| 4.2 | Add Pagination for Large Item Lists | Implement pagination to handle users with many items efficiently | Low | Performance & Technical | ✅ Implemented | 7 ⭐⭐⭐⭐⭐⭐⭐ | Flutter Code |
 
 **Total Features:** 45 proposals  
 **Implementation Status:**
-- ✅ Fully Implemented: 21 features
+- ✅ Fully Implemented: 25 features
 - ⚠️ Partially Implemented: 0 features
-- ❌ Not Implemented: 20 features
-- 🚫 Not Planned: 4 features
+- ❌ Not Implemented: 14 features
+- 🚫 Not Planned: 6 features
 
 **Status Legend:**
 - ✅ Implemented: Feature is fully implemented and working
@@ -1066,13 +1066,21 @@ Examples:
 - Test all changes thoroughly before deployment
 - Consider user feedback when prioritizing features
 
+### Modification Location Legend
+
+- **Flutter Code**: Only Flutter/Dart code changes required (UI, business logic, services)
+- **Flutter Code + Supabase**: Code changes + database schema modifications (migrations, new tables/columns)
+- **Flutter Code + Config**: Code changes + configuration files (`.env`, API keys, settings)
+- **Flutter Code + External**: Code changes + external packages/services (third-party libraries, cloud services)
+- **Flutter Code + Supabase + External**: All of the above (code, database, and external dependencies)
+
 ---
 
 **Last Updated:** 2025-01-06  
 **Total Features:** 45 proposals across 6 categories  
 **Implementation Status:**
-- ✅ Fully Implemented: 21 features
+- ✅ Fully Implemented: 25 features
 - ⚠️ Partially Implemented: 0 features
-- ❌ Not Implemented: 20 features
-- 🚫 Not Planned: 4 features
+- ❌ Not Implemented: 14 features
+- 🚫 Not Planned: 6 features
 

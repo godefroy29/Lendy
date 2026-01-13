@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../services/auth_providers.dart';
 import '../../utils/error_handler.dart';
@@ -62,6 +63,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       return;
     }
 
+    HapticFeedback.mediumImpact();
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -316,6 +318,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   height: 50,
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _handleRegister,
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 44), // Minimum touch target
+                    ),
                     child: _isLoading
                         ? const SizedBox(
                             height: 20,

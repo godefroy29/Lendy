@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../services/auth_providers.dart';
 import '../../utils/error_handler.dart';
 import 'register_screen.dart';
+import 'forgot_password_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -27,9 +29,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) {
+      HapticFeedback.lightImpact();
       return;
     }
 
+    HapticFeedback.mediumImpact();
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -184,6 +188,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   height: 50,
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _handleLogin,
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 44), // Minimum touch target
+                    ),
                     child: _isLoading
                         ? const SizedBox(
                             height: 20,
@@ -191,6 +198,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
                         : const Text('Login'),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Forgot password link
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () {
+                      HapticFeedback.lightImpact();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ForgotPasswordScreen(),
+                        ),
+                      );
+                    },
+                    style: TextButton.styleFrom(
+                      minimumSize: const Size(88, 44), // Minimum touch target
+                    ),
+                    child: const Text('Forgot Password?'),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -206,11 +233,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     TextButton(
                       onPressed: () {
+                        HapticFeedback.lightImpact();
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (context) => const RegisterScreen()),
                         );
                       },
+                      style: TextButton.styleFrom(
+                        minimumSize: const Size(88, 44), // Minimum touch target
+                      ),
                       child: const Text('Sign up'),
                     ),
                   ],

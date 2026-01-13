@@ -29,7 +29,7 @@ class SupabaseItemRepository {
       final response = await _supabase
           .from('items')
           .insert(itemJson)
-          .select('id,user_id,title,description,borrower_name,borrower_contact,lent_at,due_at,reminder_at,status,returned_at,photo_urls,created_at,updated_at')
+          .select('id,user_id,title,description,borrower_name,borrower_contact,lent_at,due_at,reminder_at,status,returned_at,photo_urls,category,created_at,updated_at')
           .single();
       
       // Convert response back to Item entity
@@ -42,10 +42,11 @@ class SupabaseItemRepository {
 
   // 9.3: Get Items Method (with filtering and pagination)
   // Optimized: Select only needed fields, uses indexes on user_id and status
-  // Database indexes should be created on: user_id, status, due_at (for ordering)
+  // Database indexes should be created on: user_id, status, due_at (for ordering), category (for filtering)
   Future<List<Item>> getItems({
     required String userId,
     ItemStatus? status, // Filter by status, null for all
+    String? category, // Filter by category, null for all
     int? limit,
     int? offset,
   }) async {
@@ -53,12 +54,17 @@ class SupabaseItemRepository {
       // Start building query - select only needed fields for better performance
       dynamic query = _supabase
           .from('items')
-          .select('id,user_id,title,description,borrower_name,borrower_contact,lent_at,due_at,reminder_at,status,returned_at,photo_urls,created_at,updated_at')
+          .select('id,user_id,title,description,borrower_name,borrower_contact,lent_at,due_at,reminder_at,status,returned_at,photo_urls,category,created_at,updated_at')
           .eq('user_id', userId); // Filter by user_id (indexed)
       
       // Add status filter if provided (indexed)
       if (status != null) {
         query = query.eq('status', status.value);
+      }
+      
+      // Add category filter if provided (indexed)
+      if (category != null) {
+        query = query.eq('category', category);
       }
       
       // Execute query with ordering (due_at should be indexed for performance)
@@ -94,7 +100,7 @@ class SupabaseItemRepository {
     try {
       final response = await _supabase
           .from('items')
-          .select('id,user_id,title,description,borrower_name,borrower_contact,lent_at,due_at,reminder_at,status,returned_at,photo_urls,created_at,updated_at')
+          .select('id,user_id,title,description,borrower_name,borrower_contact,lent_at,due_at,reminder_at,status,returned_at,photo_urls,category,created_at,updated_at')
           .eq('id', itemId) // Primary key (indexed)
           .eq('user_id', userId) // Ensure user owns this item (indexed)
           .maybeSingle(); // Returns null if not found
@@ -131,7 +137,7 @@ class SupabaseItemRepository {
           .update(updates)
           .eq('id', itemId) // Primary key (indexed)
           .eq('user_id', userId) // Ensure user owns this item (indexed)
-          .select('id,user_id,title,description,borrower_name,borrower_contact,lent_at,due_at,reminder_at,status,returned_at,photo_urls,created_at,updated_at')
+          .select('id,user_id,title,description,borrower_name,borrower_contact,lent_at,due_at,reminder_at,status,returned_at,photo_urls,category,created_at,updated_at')
           .single();
       
       return Item.fromJson(response);
@@ -158,7 +164,7 @@ class SupabaseItemRepository {
           })
           .eq('id', itemId) // Primary key (indexed)
           .eq('user_id', userId) // Indexed
-          .select('id,user_id,title,description,borrower_name,borrower_contact,lent_at,due_at,reminder_at,status,returned_at,photo_urls,created_at,updated_at')
+          .select('id,user_id,title,description,borrower_name,borrower_contact,lent_at,due_at,reminder_at,status,returned_at,photo_urls,category,created_at,updated_at')
           .single();
       
       return Item.fromJson(response);
@@ -191,6 +197,7 @@ class SupabaseItemRepository {
     required String userId,
     required String searchQuery,
     ItemStatus? status,
+    String? category, // Filter by category, null for all
     int? limit,
     int? offset,
   }) async {
@@ -200,18 +207,23 @@ class SupabaseItemRepository {
       
       dynamic query = _supabase
           .from('items')
-          .select('id,user_id,title,description,borrower_name,borrower_contact,lent_at,due_at,reminder_at,status,returned_at,photo_urls,created_at,updated_at')
+          .select('id,user_id,title,description,borrower_name,borrower_contact,lent_at,due_at,reminder_at,status,returned_at,photo_urls,category,created_at,updated_at')
           .eq('user_id', userId); // Indexed
       
-      // Search in title or borrower_name (case-insensitive)
+      // Search in title, borrower_name, or category (case-insensitive)
       // Using ilike for case-insensitive search
       query = query.or(
-        'title.ilike.%$escapedQuery%,borrower_name.ilike.%$escapedQuery%'
+        'title.ilike.%$escapedQuery%,borrower_name.ilike.%$escapedQuery%,category.ilike.%$escapedQuery%'
       );
       
       // Add status filter if provided (indexed)
       if (status != null) {
         query = query.eq('status', status.value);
+      }
+      
+      // Add category filter if provided (indexed)
+      if (category != null) {
+        query = query.eq('category', category);
       }
       
       // Execute query with ordering

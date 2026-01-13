@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:photo_view/photo_view.dart';
@@ -148,6 +149,7 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
           IconButton(
             icon: const Icon(Icons.edit),
             onPressed: () async {
+              HapticFeedback.lightImpact();
               await Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -160,6 +162,10 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
               ref.invalidate(returnedItemsProvider);
             },
             tooltip: 'Edit item',
+            constraints: const BoxConstraints(
+              minWidth: 44,
+              minHeight: 44,
+            ),
           ),
         ],
       ),
@@ -184,8 +190,15 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
                   Icons.edit,
                   color: Theme.of(context).colorScheme.primary,
                 ),
-                onPressed: () => _handleEditTitle(item),
+                onPressed: () {
+                  HapticFeedback.lightImpact();
+                  _handleEditTitle(item);
+                },
                 tooltip: 'Edit title',
+                constraints: const BoxConstraints(
+                  minWidth: 44,
+                  minHeight: 44,
+                ),
               ),
             ],
           ),
@@ -211,6 +224,36 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
               ),
             ),
           ),
+          // Category badge (if available)
+          if (item.category != null && item.category!.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.secondaryContainer,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.category,
+                    size: 16,
+                    color: Theme.of(context).colorScheme.onSecondaryContainer,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    item.category!,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.onSecondaryContainer,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: 32),
           
           // Borrower Information Section
@@ -223,8 +266,15 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
                   Icons.edit,
                   color: Theme.of(context).colorScheme.primary,
                 ),
-                onPressed: () => _handleEditBorrower(item),
+                onPressed: () {
+                  HapticFeedback.lightImpact();
+                  _handleEditBorrower(item);
+                },
                 tooltip: 'Edit borrower',
+                constraints: const BoxConstraints(
+                  minWidth: 44,
+                  minHeight: 44,
+                ),
               ),
             ],
           ),
@@ -324,8 +374,15 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
                   Icons.edit,
                   color: Theme.of(context).colorScheme.primary,
                 ),
-                onPressed: () => _handleEditDateLent(item),
+                onPressed: () {
+                  HapticFeedback.lightImpact();
+                  _handleEditDateLent(item);
+                },
                 tooltip: 'Edit date lent',
+                constraints: const BoxConstraints(
+                  minWidth: 44,
+                  minHeight: 44,
+                ),
               ),
             ],
           ),
@@ -405,16 +462,30 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
                       Icons.clear,
                       color: Theme.of(context).colorScheme.onSurface.withValues(alpha:0.6),
                     ),
-                    onPressed: () => _handleRemoveReminder(item.id),
+                    onPressed: () {
+                      HapticFeedback.lightImpact();
+                      _handleRemoveReminder(item.id);
+                    },
                     tooltip: 'Remove reminder',
+                    constraints: const BoxConstraints(
+                      minWidth: 44,
+                      minHeight: 44,
+                    ),
                   ),
                 IconButton(
                   icon: Icon(
                     Icons.edit,
                     color: Theme.of(context).colorScheme.primary,
                   ),
-                  onPressed: () => _handleSetReminder(item.id, item.reminderAt, item.title),
+                  onPressed: () {
+                    HapticFeedback.lightImpact();
+                    _handleSetReminder(item.id, item.reminderAt, item.title);
+                  },
                   tooltip: 'Set reminder',
+                  constraints: const BoxConstraints(
+                    minWidth: 44,
+                    minHeight: 44,
+                  ),
                 ),
               ],
             ),
@@ -440,8 +511,15 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
                   Icons.edit,
                   color: Theme.of(context).colorScheme.primary,
                 ),
-                onPressed: () => _handleEditDescription(item),
+                onPressed: () {
+                  HapticFeedback.lightImpact();
+                  _handleEditDescription(item);
+                },
                 tooltip: 'Edit description',
+                constraints: const BoxConstraints(
+                  minWidth: 44,
+                  minHeight: 44,
+                ),
               ),
             ],
           ),
@@ -526,6 +604,7 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
                 label: const Text('Mark as Returned'),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
+                  minimumSize: const Size(double.infinity, 44), // Minimum touch target
                 ),
               ),
             ),
@@ -539,6 +618,10 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
               label: const Text(
                 'Delete',
                 style: TextStyle(color: Colors.red),
+              ),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                minimumSize: const Size(double.infinity, 44), // Minimum touch target
               ),
             ),
           ),
@@ -634,6 +717,7 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
   }
 
   Future<void> _handleMarkAsReturned(String itemId) async {
+    HapticFeedback.lightImpact();
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -649,16 +733,26 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
         content: const Text('Are you sure this item has been returned?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
+            onPressed: () {
+              HapticFeedback.lightImpact();
+              Navigator.pop(context, false);
+            },
+            style: TextButton.styleFrom(
+              minimumSize: const Size(88, 44), // Minimum touch target
+            ),
             child: const Text('Cancel'),
           ),
           ElevatedButton.icon(
-            onPressed: () => Navigator.pop(context, true),
+            onPressed: () {
+              HapticFeedback.mediumImpact();
+              Navigator.pop(context, true);
+            },
             icon: const Icon(Icons.check),
             label: const Text('Confirm'),
             style: ElevatedButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.primary,
               foregroundColor: Theme.of(context).colorScheme.onPrimary,
+              minimumSize: const Size(88, 44), // Minimum touch target
             ),
           ),
         ],
@@ -686,6 +780,7 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
       await notificationService.cancelReminder(itemId.hashCode);
 
       if (mounted) {
+        HapticFeedback.mediumImpact();
         SuccessAnimation.show(
           context,
           'Item marked as returned!',
@@ -709,7 +804,10 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
                 ? SnackBarAction(
                     label: 'Retry',
                     textColor: Colors.white,
-                    onPressed: () => _handleMarkAsReturned(itemId),
+                    onPressed: () {
+                      HapticFeedback.lightImpact();
+                      _handleMarkAsReturned(itemId);
+                    },
                   )
                 : null,
           ),
@@ -719,6 +817,7 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
   }
 
   Future<void> _handleDelete(String itemId) async {
+    HapticFeedback.mediumImpact();
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -736,16 +835,26 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
+            onPressed: () {
+              HapticFeedback.lightImpact();
+              Navigator.pop(context, false);
+            },
+            style: TextButton.styleFrom(
+              minimumSize: const Size(88, 44), // Minimum touch target
+            ),
             child: const Text('Cancel'),
           ),
           ElevatedButton.icon(
-            onPressed: () => Navigator.pop(context, true),
+            onPressed: () {
+              HapticFeedback.heavyImpact();
+              Navigator.pop(context, true);
+            },
             icon: const Icon(Icons.delete),
             label: const Text('Delete'),
             style: ElevatedButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.error,
               foregroundColor: Theme.of(context).colorScheme.onError,
+              minimumSize: const Size(88, 44), // Minimum touch target
             ),
           ),
         ],
@@ -794,7 +903,10 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
                 ? SnackBarAction(
                     label: 'Retry',
                     textColor: Colors.white,
-                    onPressed: () => _handleMarkAsReturned(itemId),
+                    onPressed: () {
+                      HapticFeedback.lightImpact();
+                      _handleMarkAsReturned(itemId);
+                    },
                   )
                 : null,
           ),
@@ -804,6 +916,7 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
   }
 
   Future<void> _handleSetReminder(String itemId, DateTime? currentReminder, String itemTitle) async {
+    HapticFeedback.lightImpact();
     // Pick date
     final date = await showDatePicker(
       context: context,
@@ -871,6 +984,7 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
       );
 
       if (mounted) {
+        HapticFeedback.mediumImpact();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Reminder set!')),
         );
@@ -886,7 +1000,10 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
                 ? SnackBarAction(
                     label: 'Retry',
                     textColor: Colors.white,
-                    onPressed: () => _handleMarkAsReturned(itemId),
+                    onPressed: () {
+                      HapticFeedback.lightImpact();
+                      _handleMarkAsReturned(itemId);
+                    },
                   )
                 : null,
           ),
@@ -896,6 +1013,7 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
   }
 
   Future<void> _handleRemoveReminder(String itemId) async {
+    HapticFeedback.lightImpact();
     try {
       final authState = ref.read(authStateProvider);
       final user = authState.value;
@@ -933,7 +1051,10 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
                 ? SnackBarAction(
                     label: 'Retry',
                     textColor: Colors.white,
-                    onPressed: () => _handleMarkAsReturned(itemId),
+                    onPressed: () {
+                      HapticFeedback.lightImpact();
+                      _handleMarkAsReturned(itemId);
+                    },
                   )
                 : null,
           ),
@@ -959,16 +1080,28 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () {
+              HapticFeedback.lightImpact();
+              Navigator.pop(context);
+            },
+            style: TextButton.styleFrom(
+              minimumSize: const Size(88, 44), // Minimum touch target
+            ),
             child: const Text('Cancel'),
           ),
           ElevatedButton(
             onPressed: () {
               final newTitle = titleController.text.trim();
               if (newTitle.isNotEmpty) {
+                HapticFeedback.mediumImpact();
                 Navigator.pop(context, newTitle);
+              } else {
+                HapticFeedback.lightImpact();
               }
             },
+            style: ElevatedButton.styleFrom(
+              minimumSize: const Size(88, 44), // Minimum touch target
+            ),
             child: const Text('Save'),
           ),
         ],
@@ -1016,21 +1149,33 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () {
+              HapticFeedback.lightImpact();
+              Navigator.pop(context);
+            },
+            style: TextButton.styleFrom(
+              minimumSize: const Size(88, 44), // Minimum touch target
+            ),
             child: const Text('Cancel'),
           ),
           ElevatedButton(
             onPressed: () {
               final newName = borrowerNameController.text.trim();
               if (newName.isNotEmpty) {
+                HapticFeedback.mediumImpact();
                 Navigator.pop(context, {
                   'borrower_name': newName,
                   'borrower_contact': borrowerContactController.text.trim().isEmpty
                       ? null
                       : borrowerContactController.text.trim(),
                 });
+              } else {
+                HapticFeedback.lightImpact();
               }
             },
+            style: ElevatedButton.styleFrom(
+              minimumSize: const Size(88, 44), // Minimum touch target
+            ),
             child: const Text('Save'),
           ),
         ],
@@ -1085,14 +1230,24 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () {
+              HapticFeedback.lightImpact();
+              Navigator.pop(context);
+            },
+            style: TextButton.styleFrom(
+              minimumSize: const Size(88, 44), // Minimum touch target
+            ),
             child: const Text('Cancel'),
           ),
           ElevatedButton(
             onPressed: () {
+              HapticFeedback.mediumImpact();
               final newDescription = descriptionController.text.trim();
               Navigator.pop(context, newDescription.isEmpty ? null : newDescription);
             },
+            style: ElevatedButton.styleFrom(
+              minimumSize: const Size(88, 44), // Minimum touch target
+            ),
             child: const Text('Save'),
           ),
         ],
@@ -1105,6 +1260,7 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
   }
 
   Future<void> _updateItemField(String itemId, Map<String, dynamic> updates) async {
+    HapticFeedback.lightImpact();
     try {
       final authState = ref.read(authStateProvider);
       final user = authState.value;
@@ -1121,6 +1277,7 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
       );
 
       if (mounted) {
+        HapticFeedback.mediumImpact();
         SuccessAnimation.show(
           context,
           'Item updated successfully!',
@@ -1140,7 +1297,10 @@ class _ItemDetailScreenState extends ConsumerState<ItemDetailScreen> {
                 ? SnackBarAction(
                     label: 'Retry',
                     textColor: Colors.white,
-                    onPressed: () => _handleMarkAsReturned(itemId),
+                    onPressed: () {
+                      HapticFeedback.lightImpact();
+                      _handleMarkAsReturned(itemId);
+                    },
                   )
                 : null,
           ),

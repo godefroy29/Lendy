@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../providers/items_provider.dart';
@@ -22,6 +23,7 @@ class _ItemsListScreenState extends ConsumerState<ItemsListScreen>
     with SingleTickerProviderStateMixin {
   final _searchController = TextEditingController();
   String _searchQuery = '';
+  String? _selectedCategory;
   late TabController _tabController;
   String _appVersion = 'Loading...';
   Timer? _debounceTimer;
@@ -49,6 +51,7 @@ class _ItemsListScreenState extends ConsumerState<ItemsListScreen>
       final params = PaginatedItemsParams(
         status: status,
         searchQuery: _searchQuery.isEmpty ? null : _searchQuery.trim(),
+        category: _selectedCategory,
       );
       ref.read(paginatedItemsNotifierProvider(params)).loadMore();
     }
@@ -64,8 +67,19 @@ class _ItemsListScreenState extends ConsumerState<ItemsListScreen>
         setState(() {
           _searchQuery = query;
         });
-        // Reset pagination when search query changes
-        ref.invalidate(paginatedItemsStateProvider);
+        // Reset pagination when search query changes by refreshing both tabs
+        final lentParams = PaginatedItemsParams(
+          status: ItemStatus.lent,
+          searchQuery: query.isEmpty ? null : query.trim(),
+          category: _selectedCategory,
+        );
+        final returnedParams = PaginatedItemsParams(
+          status: ItemStatus.returned,
+          searchQuery: query.isEmpty ? null : query.trim(),
+          category: _selectedCategory,
+        );
+        ref.read(paginatedItemsNotifierProvider(lentParams)).refresh();
+        ref.read(paginatedItemsNotifierProvider(returnedParams)).refresh();
       }
     });
   }
@@ -100,8 +114,9 @@ class _ItemsListScreenState extends ConsumerState<ItemsListScreen>
               ? const Text('Lendy')
               : Text('Search: $_searchQuery'),
           bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(112),
+            preferredSize: Size.fromHeight(_getAppBarBottomHeight()),
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -130,6 +145,8 @@ class _ItemsListScreenState extends ConsumerState<ItemsListScreen>
                     ),
                   ),
                 ),
+                // Category filter chips
+                _buildCategoryFilter(context),
                 const TabBar(
                   tabs: [
                     Tab(text: 'Lent'),
@@ -143,8 +160,13 @@ class _ItemsListScreenState extends ConsumerState<ItemsListScreen>
             PopupMenuButton<String>(
               icon: const Icon(Icons.more_vert),
               tooltip: 'Menu',
+              constraints: const BoxConstraints(
+                minWidth: 44,
+                minHeight: 44,
+              ),
               onSelected: (value) {
                 if (value == 'theme') {
+                  HapticFeedback.lightImpact();
                   ref.read(themeModeNotifierProvider.notifier).toggleTheme();
                 }
               },
@@ -190,6 +212,7 @@ class _ItemsListScreenState extends ConsumerState<ItemsListScreen>
         ),
         floatingActionButton: FloatingActionButton.extended(
           onPressed: () async {
+            HapticFeedback.lightImpact();
             await Navigator.push(
               context,
               MaterialPageRoute(
@@ -199,8 +222,14 @@ class _ItemsListScreenState extends ConsumerState<ItemsListScreen>
               ),
             );
             // Refresh list after returning from create screen
-            final lentParams = PaginatedItemsParams(status: ItemStatus.lent);
-            final returnedParams = PaginatedItemsParams(status: ItemStatus.returned);
+            final lentParams = PaginatedItemsParams(
+              status: ItemStatus.lent,
+              category: _selectedCategory,
+            );
+            final returnedParams = PaginatedItemsParams(
+              status: ItemStatus.returned,
+              category: _selectedCategory,
+            );
             ref.read(paginatedItemsNotifierProvider(lentParams)).refresh();
             ref.read(paginatedItemsNotifierProvider(returnedParams)).refresh();
           },
@@ -404,6 +433,158 @@ class _ItemsListScreenState extends ConsumerState<ItemsListScreen>
         },
       ),
     );
+  }
+
+  double _getAppBarBottomHeight() {
+    // Base height: search field (56) + TabBar (48) + padding (16)
+    double height = 120.0;
+    
+    // Add height for category filter if it should be shown
+    // We check if there are any categories by watching the providers
+    // For now, we'll always reserve space if there might be categories
+    // This prevents layout shifts
+    height += 48.0; // Category filter height
+    
+    return height;
+  }
+
+  Widget _buildCategoryFilter(BuildContext context) {
+    // Predefined categories - always show these
+    const predefinedCategories = [
+      'Books',
+      'Tools',
+      'Electronics',
+      'Clothing',
+      'Games',
+      'Other',
+    ];
+    
+    // Get categories from currently loaded items (both tabs) without category filter
+    // This allows us to discover custom categories
+    final lentParamsForCategories = PaginatedItemsParams(
+      status: ItemStatus.lent,
+      searchQuery: _searchQuery.isEmpty ? null : _searchQuery.trim(),
+      category: null, // Get all to discover categories
+    );
+    final returnedParamsForCategories = PaginatedItemsParams(
+      status: ItemStatus.returned,
+      searchQuery: _searchQuery.isEmpty ? null : _searchQuery.trim(),
+      category: null, // Get all to discover categories
+    );
+    
+    // Only read (not watch) to avoid unnecessary rebuilds
+    final lentStateForCategories = ref.read(paginatedItemsStateProvider(lentParamsForCategories));
+    final returnedStateForCategories = ref.read(paginatedItemsStateProvider(returnedParamsForCategories));
+    
+    // Extract unique categories from currently loaded items
+    final allItems = [...lentStateForCategories.items, ...returnedStateForCategories.items];
+    final customCategories = <String>{};
+    for (final item in allItems) {
+      if (item.category != null && 
+          item.category!.isNotEmpty && 
+          !predefinedCategories.contains(item.category)) {
+        customCategories.add(item.category!);
+      }
+    }
+    final sortedCustomCategories = customCategories.toList()..sort();
+    
+    // Combine predefined and custom categories
+    final allCategories = [...predefinedCategories, ...sortedCustomCategories];
+    
+    // Always show filter with predefined categories, even if no items loaded yet
+    if (allCategories.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      height: 48,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        children: [
+          // "All" filter chip
+          FilterChip(
+            label: Text(
+              'All',
+              style: TextStyle(
+                color: _selectedCategory == null
+                    ? Theme.of(context).colorScheme.onPrimaryContainer
+                    : Theme.of(context).colorScheme.onSurface,
+                fontWeight: _selectedCategory == null ? FontWeight.w600 : FontWeight.normal,
+              ),
+            ),
+            selected: _selectedCategory == null,
+            onSelected: (selected) {
+              if (selected) {
+                HapticFeedback.lightImpact();
+                setState(() {
+                  _selectedCategory = null;
+                });
+                _refreshWithNewCategory();
+              }
+            },
+            selectedColor: Theme.of(context).colorScheme.primaryContainer,
+            checkmarkColor: Theme.of(context).colorScheme.onPrimaryContainer,
+            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+            side: BorderSide(
+              color: _selectedCategory == null
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).colorScheme.outline.withValues(alpha: 0.5),
+              width: _selectedCategory == null ? 1.5 : 1.0,
+            ),
+          ),
+          const SizedBox(width: 8),
+          // Category filter chips
+          ...allCategories.map((category) => Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: FilterChip(
+              label: Text(
+                category,
+                style: TextStyle(
+                  color: _selectedCategory == category
+                      ? Theme.of(context).colorScheme.onPrimaryContainer
+                      : Theme.of(context).colorScheme.onSurface,
+                  fontWeight: _selectedCategory == category ? FontWeight.w600 : FontWeight.normal,
+                ),
+              ),
+              selected: _selectedCategory == category,
+              onSelected: (selected) {
+                HapticFeedback.lightImpact();
+                setState(() {
+                  _selectedCategory = selected ? category : null;
+                });
+                _refreshWithNewCategory();
+              },
+              selectedColor: Theme.of(context).colorScheme.primaryContainer,
+              checkmarkColor: Theme.of(context).colorScheme.onPrimaryContainer,
+              backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+              side: BorderSide(
+                color: _selectedCategory == category
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).colorScheme.outline.withValues(alpha: 0.5),
+                width: _selectedCategory == category ? 1.5 : 1.0,
+              ),
+            ),
+          )),
+        ],
+      ),
+    );
+  }
+
+  void _refreshWithNewCategory() {
+    // Refresh both tabs with new category filter
+    final lentParams = PaginatedItemsParams(
+      status: ItemStatus.lent,
+      searchQuery: _searchQuery.isEmpty ? null : _searchQuery.trim(),
+      category: _selectedCategory,
+    );
+    final returnedParams = PaginatedItemsParams(
+      status: ItemStatus.returned,
+      searchQuery: _searchQuery.isEmpty ? null : _searchQuery.trim(),
+      category: _selectedCategory,
+    );
+    ref.read(paginatedItemsNotifierProvider(lentParams)).refresh();
+    ref.read(paginatedItemsNotifierProvider(returnedParams)).refresh();
   }
 }
 

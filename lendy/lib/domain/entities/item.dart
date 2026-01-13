@@ -13,6 +13,7 @@ class Item {
   final ItemStatus status;
   final DateTime? returnedAt;
   final List<String>? photoUrls;
+  final String? category;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -29,6 +30,7 @@ class Item {
     required this.status,
     this.returnedAt,
     this.photoUrls,
+    this.category,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -56,6 +58,7 @@ class Item {
       photoUrls: json['photo_urls'] != null 
           ? List<String>.from(json['photo_urls'] as List) 
           : null,
+      category: json['category'] as String?,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
     );
@@ -76,6 +79,7 @@ class Item {
       'status': status.value,
       'returned_at': returnedAt?.toIso8601String(),
       'photo_urls': photoUrls,
+      'category': category,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     };
@@ -95,6 +99,7 @@ class Item {
     ItemStatus? status,
     DateTime? returnedAt,
     List<String>? photoUrls,
+    String? category,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -111,6 +116,7 @@ class Item {
       status: status ?? this.status,
       returnedAt: returnedAt ?? this.returnedAt,
       photoUrls: photoUrls ?? this.photoUrls,
+      category: category ?? this.category,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

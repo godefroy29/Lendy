@@ -56,5 +56,18 @@ class AuthService {
   Stream<AuthState> get authStateChanges {
     return _supabase.auth.onAuthStateChange;
   }
+
+  // 1.2: Reset Password Method
+  Future<void> resetPassword({required String email}) async {
+    try {
+      await _supabase.auth.resetPasswordForEmail(
+        email,
+        redirectTo: null, // Can be set to a deep link URL if needed
+      );
+    } catch (e) {
+      // Re-throw to let caller handle the error
+      rethrow;
+    }
+  }
 }
 

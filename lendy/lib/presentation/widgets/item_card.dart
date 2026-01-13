@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import '../../domain/entities/item.dart';
 import '../../domain/entities/item_status.dart';
@@ -25,7 +26,10 @@ class ItemCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: InkWell(
-        onTap: onTap,
+        onTap: () {
+          HapticFeedback.selectionClick();
+          onTap();
+        },
         borderRadius: BorderRadius.circular(16),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -107,8 +111,13 @@ class ItemCard extends StatelessWidget {
                         Expanded(
                           child: GestureDetector(
                             onTap: onBorrowerTap != null
-                                ? () => onBorrowerTap!(item.borrowerName)
+                                ? () {
+                                    HapticFeedback.lightImpact();
+                                    onBorrowerTap!(item.borrowerName);
+                                  }
                                 : null,
+                            // Ensure minimum touch target
+                            behavior: HitTestBehavior.opaque,
                             child: Text(
                               item.borrowerName,
                               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -125,6 +134,37 @@ class ItemCard extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 8),
+                    // Category badge (if available)
+                    if (item.category != null && item.category!.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.secondaryContainer,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.category,
+                                size: 12,
+                                color: Theme.of(context).colorScheme.onSecondaryContainer,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                item.category!,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: Theme.of(context).colorScheme.onSecondaryContainer,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     // Dates row
                     Wrap(
                       spacing: 12,
