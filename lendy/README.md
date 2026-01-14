@@ -1,4 +1,4 @@
-# lendy
+# remindr
 
 A new Flutter project.
 

@@ -1,6 +1,6 @@
-# Lendy Application - Feature Proposals, Fixes, and Improvements
+# Remindr Application - Feature Proposals, Fixes, and Improvements
 
-This document contains categorized proposals for new functionality, bug fixes, and UI/UX improvements for the Lendy application. Each item is coded for easy reference (e.g., "do feature 1.2").
+This document contains categorized proposals for new functionality, bug fixes, and UI/UX improvements for the Remindr application. Each item is coded for easy reference (e.g., "do feature 1.2").
 
 ## Feature Index
 

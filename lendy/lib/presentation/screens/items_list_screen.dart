@@ -111,7 +111,7 @@ class _ItemsListScreenState extends ConsumerState<ItemsListScreen>
       child: Scaffold(
         appBar: AppBar(
           title: _searchQuery.isEmpty 
-              ? const Text('Lendy')
+              ? const Text('Remindr')
               : Text('Search: $_searchQuery'),
           bottom: PreferredSize(
             preferredSize: Size.fromHeight(_getAppBarBottomHeight()),
